@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"github.com/cheggaaa/pb/v3"
 	"log"
 	"sort"
@@ -10,9 +11,15 @@ import (
 
 func main(){
 
-	registry := NewClient("host","port")
-	registry.BasicAuthentication("user","pass")
 
+	var host = flag.String("host", "localhost", "Registry host)")
+	var port = flag.String("port", "80", "Registry Port")
+	var username = flag.String("username", "", "Registry username")
+	var password = flag.String("password", "", "Registry password")
+	var lastImages = flag.Int("keep", 10, "Keep Last n images")
+	flag.Parse()
+	registry := NewClient(*host,*port)
+	registry.BasicAuthentication(*username,*password)
 
 	var v1Compatibility v1Compatibility
 
@@ -27,7 +34,7 @@ func main(){
 		for _,v := range rL {
 			tags := registry.getTags(gN,v)
 			var tagList []SortTag
-			if len(tags.Tags) > 10 {
+			if len(tags.Tags) > *lastImages {
 				log.Printf("Getting tags from %s image tags: %d\n",tags.Name,len(tags.Tags))
 				count := len(tags.Tags)
 				bar := pb.StartNew(count)
@@ -49,7 +56,7 @@ func main(){
 					return tagList[i].TimeAgo < tagList[j].TimeAgo
 				})
 
-				lastTags := tagList[10:]
+				lastTags := tagList[*lastImages:]
 				log.Println(len(lastTags))
 				//Remove old image keep last 10
 				for _,image := range lastTags{
