@@ -12,12 +12,13 @@ import (
 func main(){
 
 
-	var host = flag.String("host", "localhost", "Registry host)")
+	var host = flag.String("host", "localhost", "Registry host")
 	var port = flag.String("port", "80", "Registry Port")
 	var username = flag.String("username", "", "Registry username")
 	var password = flag.String("password", "", "Registry password")
 	var lastImages = flag.Int("keep", 10, "Keep Last n images")
 	flag.Parse()
+
 	registry := NewClient(*host,*port)
 	registry.BasicAuthentication(*username,*password)
 

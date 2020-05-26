@@ -9,26 +9,28 @@ import (
 	"strings"
 )
 
-
-func NewClient(host,port string)(Registry){
-	return Registry{HOST:host,PORT:port}
-
+// NewClient return Registry object for reuse.
+func NewClient(host, port string) Registry {
+	return Registry{HOST: host, PORT: port}
 }
 
-func (registry *Registry) BasicAuthentication(user,password string){
-	*registry = Registry{HOST:registry.HOST,PORT:registry.PORT,USER:user,PASSWORD:password}
-
-}
-func (registry Registry)GET(path string)(*http.Response,error){
-	resp,err := http.Get(fmt.Sprintf("http://%s:%s%s",registry.HOST,registry.PORT,path))
-	return resp,err
+//BasicAuthentication Set basic auth given registry.
+func (registry *Registry) BasicAuthentication(user, password string) {
+	*registry = Registry{HOST: registry.HOST, PORT: registry.PORT, USER: user, PASSWORD: password}
 }
 
-func (registry Registry) getCatalog()Catalog{
+//GET return  http response for given path.
+func (registry Registry) GET(path string) (*http.Response, error) {
+	resp, err := http.Get(fmt.Sprintf("http://%s:%s%s", registry.HOST, registry.PORT, path))
+	return resp, err
+}
+
+//getCatalog rreturn v2 catalog for given registry.
+func (registry Registry) getCatalog() Catalog {
 	var catalog Catalog
-	resp,err := registry.GET("/v2/_catalog")
+	resp, err := registry.GET("/v2/_catalog")
 	if err != nil {
-		log.Println("Error getting version",err)
+		log.Println("Error getting version", err)
 	}
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -37,28 +39,29 @@ func (registry Registry) getCatalog()Catalog{
 	err = json.Unmarshal(bodyBytes, &catalog)
 
 	if err != nil {
-		log.Println("Unmarshall error ",err)
+		log.Println("Unmarshall error ", err)
 	}
 	return catalog
 }
 
-func splitRepositories(repositories []string)map[string][]string{
-	var group,repoName string
+//splitRepositories split group and image name ex. foo/bar:latest => group = foo, image = bar (Default group is `other`)
+func splitRepositories(repositories []string) map[string][]string {
+	var group, repoName string
 	var repoMap = make(map[string][]string)
-	for _,repo:= range repositories{
-		split := strings.Split(repo,"/")
-		if len(split)>1{
+	for _, repo := range repositories {
+		split := strings.Split(repo, "/")
+		if len(split) > 1 {
 			group = split[0]
 			repoName = split[1]
-		}else{
+		} else {
 			group = "other"
 			repoName = split[0]
 		}
-		groupRepo,ok := repoMap[group]
-		if ok{
-			groupRepo = append(groupRepo,repoName)
+		groupRepo, ok := repoMap[group]
+		if ok {
+			groupRepo = append(groupRepo, repoName)
 			repoMap[group] = groupRepo
-		}else {
+		} else {
 			repoMap[group] = []string{repoName}
 		}
 	}
@@ -66,47 +69,46 @@ func splitRepositories(repositories []string)map[string][]string{
 
 }
 
-
-func (registry Registry) getDigest (imageName,tag string) string{
+//getDigest return image's digest with `application/vnd.docker.distribution.manifest.v2+json`
+func (registry Registry) getDigest(imageName, tag string) string {
 	client := &http.Client{}
-	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s",registry.HOST,registry.PORT,imageName,tag)
-	req, err := http.NewRequest("HEAD", url , nil)
+	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, tag)
+	req, err := http.NewRequest("HEAD", url, nil)
 	if err != nil {
-		log.Println("Cannot get docker image digest",err)
+		log.Println("Cannot get docker image digest", err)
 	}
 	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("Cannot get digest",err)
+		log.Println("Cannot get digest", err)
 	}
 	return resp.Header["Docker-Content-Digest"][0]
 }
-func (registry Registry) getManifest(imageName,tag string) Manifests {
+func (registry Registry) getManifest(imageName, tag string) Manifests {
 	var manifests Manifests
-	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s",registry.HOST,registry.PORT,imageName,tag)
+	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, tag)
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", url , nil)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Println("Cannot get docker image digest",err)
+		log.Println("Cannot get docker image digest", err)
 	}
 	resp, err := client.Do(req)
 
 	if err != nil {
-		log.Println("Cannot get digest",err)
+		log.Println("Cannot get digest", err)
 	}
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 
 	err = json.Unmarshal(bodyBytes, &manifests)
-	if err !=nil{
-		log.Println("Unmarshal error mamifes",err)
+	if err != nil {
+		log.Println("Unmarshal error mamifes", err)
 	}
 	return manifests
 }
 
-
-func (registry Registry) getTags(groupName,repoName string) Tag{
+func (registry Registry) getTags(groupName, repoName string) Tag {
 	var tags Tag
-	url := fmt.Sprintf("http://%s:%s/v2/%s/%s/tags/list",registry.HOST,registry.PORT, groupName, repoName)
+	url := fmt.Sprintf("http://%s:%s/v2/%s/%s/tags/list", registry.HOST, registry.PORT, groupName, repoName)
 	resp, err := http.Get(url)
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -114,41 +116,26 @@ func (registry Registry) getTags(groupName,repoName string) Tag{
 	}
 	err = json.Unmarshal(bodyBytes, &tags)
 	if err != nil {
-		log.Println("Error unmarshal tags",err)
+		log.Println("Error unmarshal tags", err)
 	}
 	return tags
 }
 
-
-func (registry Registry) deleteTag(imageName,digest string) int{
-	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s",registry.HOST,registry.PORT,imageName,digest)
+func (registry Registry) deleteTag(imageName, digest string) int {
+	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, digest)
 	client := &http.Client{}
-	req, err := http.NewRequest("DELETE", url , nil)
+	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
-		log.Println("Cannot get docker image digest",err)
+		log.Println("Cannot get docker image digest", err)
 	}
 	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
-	if len(registry.USER)>0{
-		req.SetBasicAuth(registry.USER,registry.PASSWORD)
+	if len(registry.USER) > 0 {
+		req.SetBasicAuth(registry.USER, registry.PASSWORD)
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("Cannot get digest",err)
+		log.Println("Cannot get digest", err)
 	}
 	return resp.StatusCode
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
