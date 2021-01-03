@@ -49,27 +49,36 @@ func (registry Registry) getCatalog() Catalog {
 //splitRepositories split group and image name ex. foo/bar:latest => group = foo, image = bar (Default group is `other`)
 func splitRepositories(repositories []string) map[string][]string {
 	var group, repoName string
-	var repoMap = make(map[string][]string)
+	var registryMap = make(map[string][]string)
 	for _, repo := range repositories {
-		split := strings.Split(repo, "/")
-		if len(split) > 1 {
-			group = split[0]
-			repoName = split[1]
+		splitted := strings.Split(repo, "/")
+		if len(splitted) == 1 {
+			group = ""
+			repoName = splitted[0]
 		} else {
-			group = "other"
-			repoName = split[0]
+			// TODO: refactor
+			repoName = splitted[len(splitted) - 1]
+			group = ""
+			subSplitted := splitted[0:len(splitted) -1]
+			for i, v := range subSplitted {
+				if i == 0 {
+					group = group + v
+				} else {
+					group = group + "/" + v
+				}
+			}
 		}
 
-		groupRepo, ok := repoMap[group]
+		groupRepositories, ok := registryMap[group]
 		if ok {
-			groupRepo = append(groupRepo, repoName)
-			repoMap[group] = groupRepo
+			groupRepositories = append(groupRepositories, repoName)
+			registryMap[group] = groupRepositories
 		} else {
-			repoMap[group] = []string{repoName}
+			registryMap[group] = []string{repoName}
 		}
 	}
 
-	return repoMap
+	return registryMap
 }
 
 //getDigest return image's digest with `application/vnd.docker.distribution.manifest.v2+json`
