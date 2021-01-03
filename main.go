@@ -17,8 +17,14 @@ func main(){
 	var username = flag.String("username", "", "Registry username")
 	var password = flag.String("password", "", "Registry password")
 	var lastImages = flag.Int("keep", 10, "Keep Last n images")
+	var dryRun = flag.Bool("dry-run",false,"Print old images, don't remove.")
+	var groupName = flag.String("group","","Remove images from group")
 	flag.Parse()
 
+	var isAllGroup = false
+	if (len(*groupName) == 0){
+		isAllGroup = true
+	}
 	registry := NewClient(*host,*port)
 	registry.BasicAuthentication(*username,*password)
 
@@ -32,6 +38,8 @@ func main(){
 
 	for gN,rL := range repoMap{
 		log.Printf("Getting image from group: %s",gN)
+		if (isAllGroup || gN == *groupName)  {
+
 		for _,v := range rL {
 			tags := registry.getTags(gN,v)
 			var tagList []SortTag
@@ -43,7 +51,14 @@ func main(){
 					bar.Increment()
 					manifests := registry.getManifest(tags.Name,tag)
 					//v1comp,err := strconv.Unquote(manifests.History[0].V1Compatibility)
+
+
+					if (len(manifests.History) == 0 ){
+						log.Println("Image Manifest is broken.Skippin this tag.",tags.Name,tag)
+						continue
+					}
 					v1comp := manifests.History[0].V1Compatibility
+
 					err := json.Unmarshal([]byte(v1comp), &v1Compatibility)
 					if err != nil {
 						log.Println("Error Unmarshal compatibility ",err)
@@ -61,13 +76,22 @@ func main(){
 				log.Println(len(lastTags))
 				//Remove old image keep last 10
 				for _,image := range lastTags{
-					statusCode := registry.deleteTag(tags.Name,image.Digest)
-					if statusCode == 202 {
-						log.Printf("%s image's %s tag's removed",tags.Name,image.Tag)
+					if *dryRun {
+						log.Printf("Image: %s, tagName: %s",image,tags.Name)
+					}else{
+
+						statusCode := registry.deleteTag(tags.Name,image.Digest)
+
+						if statusCode == 202 {
+							log.Printf("%s image's %s tag's removed",tags.Name,image.Tag)
+						}else{
+							log.Printf("Error to delete image. Status Code: %d",statusCode)
+						}
 					}
+
 				}
-				//----
 			}
+		}
 		}
 	}
 
