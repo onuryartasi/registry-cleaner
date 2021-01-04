@@ -32,41 +32,53 @@ func (registry Registry) getCatalog() Catalog {
 	if err != nil {
 		log.Println("Error getting version", err)
 	}
+
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = json.Unmarshal(bodyBytes, &catalog)
 
+	err = json.Unmarshal(bodyBytes, &catalog)
 	if err != nil {
 		log.Println("Unmarshall error ", err)
 	}
+
 	return catalog
 }
 
 //splitRepositories split group and image name ex. foo/bar:latest => group = foo, image = bar (Default group is `other`)
 func splitRepositories(repositories []string) map[string][]string {
 	var group, repoName string
-	var repoMap = make(map[string][]string)
+	var registryMap = make(map[string][]string)
 	for _, repo := range repositories {
-		split := strings.Split(repo, "/")
-		if len(split) > 1 {
-			group = split[0]
-			repoName = split[1]
+		splitted := strings.Split(repo, "/")
+		if len(splitted) == 1 {
+			group = ""
+			repoName = splitted[0]
 		} else {
-			group = "other"
-			repoName = split[0]
+			// TODO: refactor
+			repoName = splitted[len(splitted) - 1]
+			group = ""
+			subSplitted := splitted[0:len(splitted) -1]
+			for i, v := range subSplitted {
+				if i == 0 {
+					group = group + v
+				} else {
+					group = group + "/" + v
+				}
+			}
 		}
-		groupRepo, ok := repoMap[group]
+
+		groupRepositories, ok := registryMap[group]
 		if ok {
-			groupRepo = append(groupRepo, repoName)
-			repoMap[group] = groupRepo
+			groupRepositories = append(groupRepositories, repoName)
+			registryMap[group] = groupRepositories
 		} else {
-			repoMap[group] = []string{repoName}
+			registryMap[group] = []string{repoName}
 		}
 	}
-	return repoMap
 
+	return registryMap
 }
 
 //getDigest return image's digest with `application/vnd.docker.distribution.manifest.v2+json`
@@ -77,13 +89,16 @@ func (registry Registry) getDigest(imageName, tag string) string {
 	if err != nil {
 		log.Println("Cannot get docker image digest", err)
 	}
+
 	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Cannot get digest", err)
 	}
+
 	return resp.Header["Docker-Content-Digest"][0]
 }
+
 func (registry Registry) getManifest(imageName, tag string) Manifests {
 	var manifests Manifests
 	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, tag)
@@ -92,17 +107,19 @@ func (registry Registry) getManifest(imageName, tag string) Manifests {
 	if err != nil {
 		log.Println("Cannot get docker image digest", err)
 	}
-	resp, err := client.Do(req)
 
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Cannot get digest", err)
 	}
+
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 
 	err = json.Unmarshal(bodyBytes, &manifests)
 	if err != nil {
 		log.Println("Unmarshal error mamifes", err)
 	}
+
 	return manifests
 }
 
@@ -114,10 +131,12 @@ func (registry Registry) getTags(groupName, repoName string) Tag {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = json.Unmarshal(bodyBytes, &tags)
 	if err != nil {
 		log.Println("Error unmarshal tags", err)
 	}
+
 	return tags
 }
 
@@ -128,6 +147,7 @@ func (registry Registry) deleteTag(imageName, digest string) int {
 	if err != nil {
 		log.Println("Cannot get docker image digest", err)
 	}
+
 	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	if len(registry.USER) > 0 {
 		req.SetBasicAuth(registry.USER, registry.PASSWORD)
@@ -137,5 +157,6 @@ func (registry Registry) deleteTag(imageName, digest string) int {
 	if err != nil {
 		log.Println("Cannot get digest", err)
 	}
+
 	return resp.StatusCode
 }
