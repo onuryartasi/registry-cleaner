@@ -10,25 +10,25 @@ import (
 )
 
 func main(){
-	var host = flag.String("host", "localhost", "Registry host")
-	var port = flag.String("port", "80", "Registry Port")
-	var username = flag.String("username", "", "Registry username")
-	var password = flag.String("password", "", "Registry password")
-	var lastImages = flag.Int("keep", 10, "Keep Last n images")
-	var dryRun = flag.Bool("dry-run",false,"Print old images, don't remove.")
-	var groupName = flag.String("group","","Remove images from group")
+	var host = *flag.String("host", "localhost", "Registry host")
+	var port = *flag.String("port", "80", "Registry Port")
+	var username = *flag.String("username", "", "Registry username")
+	var password = *flag.String("password", "", "Registry password")
+	var lastImages = *flag.Int("keep", 10, "Keep Last n images")
+	var dryRun = *flag.Bool("dry-run",false,"Print old images, don't remove.")
+	var groupName = *flag.String("group","","Remove images from group")
 	flag.Parse()
 
 
 	var startedTime = time.Now()
 	var isAllGroup = false
 
-	if len(*groupName) == 0 {
+	if len(groupName) == 0 {
 		isAllGroup = true
 	}
 
-	client := registry.NewClient(*host,*port)
-	client.BasicAuthentication(*username,*password)
+	client := registry.NewClient(host,port)
+	client.BasicAuthentication(username,password)
 
 	var v1Compatibility registry.V1Compatibility
 	catalog := client.GetCatalog()
@@ -36,12 +36,12 @@ func main(){
 	repoMap := registry.SplitRepositories(catalog.Repositories)
 
 	for gN,rL := range repoMap {
-		if isAllGroup || gN == *groupName {
+		if isAllGroup || gN == groupName {
 			for _,v := range rL {
 
 				tags := client.GetTags(gN,v)
 				var tagList []registry.SortTag
-				if len(tags.Tags) > *lastImages {
+				if len(tags.Tags) > lastImages {
 					log.Printf("Getting image from group: %s",gN)
 					log.Printf("Getting tags from %s image tags: %d\n",tags.Name,len(tags.Tags))
 					for _, tag := range tags.Tags {
@@ -68,12 +68,12 @@ func main(){
 						return tagList[i].TimeAgo < tagList[j].TimeAgo
 					})
 
-					lastTags := tagList[*lastImages:]
+					lastTags := tagList[lastImages:]
 					log.Println(len(lastTags))
 
 					//Remove old image keep last 10
 					for _,image := range lastTags{
-						if *dryRun {
+						if dryRun {
 							log.Printf("Image: %s, tagName: %s",gN+tags.Name,image.Tag)
 						} else {
 							statusCode := client.DeleteTag(tags.Name,image.Digest)
