@@ -1,0 +1,11 @@
+policy:
+  ImageRule:
+    enable: true
+    inverse: false
+    pattern:
+    - axy*
+    - abc+
+  NRule:
+    enable: true
+    inverse: true
+    keep: 10

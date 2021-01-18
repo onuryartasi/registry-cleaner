@@ -123,6 +123,9 @@ func (registry Registry) GetManifest(imageName, tag string)Manifests {
 	return manifests
 }
 
+
+
+
 func (registry Registry) GetTags(groupName, repoName string) Tag {
 	var tags Tag
 	url := fmt.Sprintf("http://%s:%s/v2/%s/%s/tags/list", registry.HOST, registry.PORT, groupName, repoName)
