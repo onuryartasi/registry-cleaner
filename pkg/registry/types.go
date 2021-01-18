@@ -1,4 +1,4 @@
-package main
+package registry
 
 import "time"
 
@@ -25,7 +25,7 @@ type Manifests struct {
 	} `json:"history"`
 }
 
-type v1Compatibility struct {
+type V1Compatibility struct {
 	Created  time.Time `json:"created"`
 	ID     string `json:"id"`
 	Parent string `json:"parent"`

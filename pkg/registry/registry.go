@@ -1,4 +1,4 @@
-package main
+package registry
 
 import (
 	"encoding/json"
@@ -26,11 +26,11 @@ func (registry Registry) GET(path string) (*http.Response, error) {
 }
 
 //getCatalog rreturn v2 catalog for given registry.
-func (registry Registry) getCatalog() Catalog {
+func (registry Registry) GetCatalog() Catalog {
 	var catalog Catalog
 	resp, err := registry.GET("/v2/_catalog")
 	if err != nil {
-		log.Println("Error getting version", err)
+		log.Fatalln("Error getting version", err)
 	}
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
@@ -47,7 +47,7 @@ func (registry Registry) getCatalog() Catalog {
 }
 
 //splitRepositories split group and image name ex. foo/bar:latest => group = foo, image = bar (Default group is `other`)
-func splitRepositories(repositories []string) map[string][]string {
+func SplitRepositories(repositories []string) map[string][]string {
 	var group, repoName string
 	var registryMap = make(map[string][]string)
 	for _, repo := range repositories {
@@ -82,7 +82,7 @@ func splitRepositories(repositories []string) map[string][]string {
 }
 
 //getDigest return image's digest with `application/vnd.docker.distribution.manifest.v2+json`
-func (registry Registry) getDigest(imageName, tag string) string {
+func (registry Registry) GetDigest(imageName, tag string) string {
 	client := &http.Client{}
 	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, tag)
 	req, err := http.NewRequest("HEAD", url, nil)
@@ -99,7 +99,7 @@ func (registry Registry) getDigest(imageName, tag string) string {
 	return resp.Header["Docker-Content-Digest"][0]
 }
 
-func (registry Registry) getManifest(imageName, tag string) Manifests {
+func (registry Registry) GetManifest(imageName, tag string)Manifests {
 	var manifests Manifests
 	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, tag)
 	client := &http.Client{}
@@ -123,7 +123,7 @@ func (registry Registry) getManifest(imageName, tag string) Manifests {
 	return manifests
 }
 
-func (registry Registry) getTags(groupName, repoName string) Tag {
+func (registry Registry) GetTags(groupName, repoName string) Tag {
 	var tags Tag
 	url := fmt.Sprintf("http://%s:%s/v2/%s/%s/tags/list", registry.HOST, registry.PORT, groupName, repoName)
 	resp, err := http.Get(url)
@@ -140,7 +140,7 @@ func (registry Registry) getTags(groupName, repoName string) Tag {
 	return tags
 }
 
-func (registry Registry) deleteTag(imageName, digest string) int {
+func (registry Registry) DeleteTag(imageName, digest string) int {
 	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, digest)
 	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", url, nil)

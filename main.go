@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"github.com/cheggaaa/pb/v3"
+	registry "github.com/onuryartasi/registry-management/pkg/registry"
 	"log"
 	"sort"
 	"time"
@@ -19,34 +19,34 @@ func main(){
 	var groupName = flag.String("group","","Remove images from group")
 	flag.Parse()
 
+
+	var startedTime = time.Now()
 	var isAllGroup = false
 
 	if len(*groupName) == 0 {
 		isAllGroup = true
 	}
 
-	registry := NewClient(*host,*port)
-	registry.BasicAuthentication(*username,*password)
+	client := registry.NewClient(*host,*port)
+	client.BasicAuthentication(*username,*password)
 
-	var v1Compatibility v1Compatibility
-	catalog := registry.getCatalog()
-	log.Printf("Founded %d image names",len(catalog.Repositories))
-	repoMap := splitRepositories(catalog.Repositories)
+	var v1Compatibility registry.V1Compatibility
+	catalog := client.GetCatalog()
+	log.Printf("Founded %d unique images",len(catalog.Repositories))
+	repoMap := registry.SplitRepositories(catalog.Repositories)
 
 	for gN,rL := range repoMap {
-		log.Printf("Getting image from group: %s",gN)
 		if isAllGroup || gN == *groupName {
 			for _,v := range rL {
-				tags := registry.getTags(gN,v)
-				var tagList []SortTag
-				if len(tags.Tags) > *lastImages {
-					log.Printf("Getting tags from %s image tags: %d\n",tags.Name,len(tags.Tags))
-					count := len(tags.Tags)
-					bar := pb.StartNew(count)
-					for _, tag := range tags.Tags {
-						bar.Increment()
 
-						manifests := registry.getManifest(tags.Name,tag)
+				tags := client.GetTags(gN,v)
+				var tagList []registry.SortTag
+				if len(tags.Tags) > *lastImages {
+					log.Printf("Getting image from group: %s",gN)
+					log.Printf("Getting tags from %s image tags: %d\n",tags.Name,len(tags.Tags))
+					for _, tag := range tags.Tags {
+
+						manifests := client.GetManifest(tags.Name,tag)
 						//v1comp,err := strconv.Unquote(manifests.History[0].V1Compatibility)
 						if len(manifests.History) == 0 {
 							log.Println("Image Manifest is broken.Skippin this tag.",tags.Name,tag)
@@ -59,11 +59,11 @@ func main(){
 							log.Println("Error Unmarshal compatibility ",err)
 						}
 
-						digest := registry.getDigest(tags.Name,tag)
-						tagList = append(tagList, SortTag{Tag: tag, TimeAgo: time.Now().Sub(v1Compatibility.Created).Hours(),Digest:digest})
+						digest := client.GetDigest(tags.Name,tag)
+						tagList = append(tagList, registry.SortTag{Tag: tag, TimeAgo: startedTime.Sub(v1Compatibility.Created).Hours(),Digest:digest})
+						log.Printf("Image: %s, created date: %s",tag,startedTime.Sub(v1Compatibility.Created).Hours())
 					}
 
-					bar.Finish()
 					sort.SliceStable(tagList, func(i, j int) bool {
 						return tagList[i].TimeAgo < tagList[j].TimeAgo
 					})
@@ -74,9 +74,9 @@ func main(){
 					//Remove old image keep last 10
 					for _,image := range lastTags{
 						if *dryRun {
-							log.Printf("Image: %s, tagName: %s",image,tags.Name)
+							log.Printf("Image: %s, tagName: %s",gN+tags.Name,image.Tag)
 						} else {
-							statusCode := registry.deleteTag(tags.Name,image.Digest)
+							statusCode := client.DeleteTag(tags.Name,image.Digest)
 							if statusCode == 202 {
 								log.Printf("%s image's %s tag's removed",tags.Name,image.Tag)
 							} else{
