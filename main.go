@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"github.com/onuryartasi/registry-management/pkg/policy"
 	registry "github.com/onuryartasi/registry-management/pkg/registry"
 	"log"
 	"sort"
@@ -19,6 +20,8 @@ func main(){
 	var groupName = *flag.String("group","","Remove images from group")
 	flag.Parse()
 
+
+	policy.Init()
 
 	var startedTime = time.Now()
 	var isAllGroup = false

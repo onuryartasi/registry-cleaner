@@ -1,0 +1,6 @@
+ImageRule:
+  enable: true
+  inverse: false
+  images:
+  - foo/bar
+  - abc/xyz

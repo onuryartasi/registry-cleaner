@@ -1,35 +1,28 @@
 package policy
 
-import "time"
-
 type Policy struct {
-	imageRule ImageRule
-	regexRule RegexRule
-	olderThanGivenDateRule OlderThanGivenDateRule
-	nRule NRule
-}
+		ImageRule struct {
+			Enable  bool     `yaml:"enable"`
+			Inverse bool     `yaml:"inverse"`
+			Images []string `yaml:"images"`
+		} `yaml:"ImageRule"`
 
+		NRule struct {
+			Enable  bool `yaml:"enable"`
+			Inverse bool `yaml:"inverse"`
+			Keep    int  `yaml:"keep"`
+		} `yaml:"NRule"`
 
-type ImageRule struct {
-	enable bool
-	inverse bool
-	images []string
-}
+		RegexRule struct {
+			Enable  bool     `yaml:"enable"`
+			Inverse bool     `yaml:"inverse"`
+			Pattern []string `yaml:"pattern"`
+		} `yaml:"RegexRule"`
 
-type RegexRule struct {
-	enable bool
-	inverse bool
-	pattern []string
-}
+		OlderThanGivenDateRule struct {
+			Enable  bool   `yaml:"enable"`
+			Inverse bool   `yaml:"inverse"`
+			Date    string `yaml:"date"`
+		} `yaml:"OlderThanGivenDateRule"`
 
-type OlderThanGivenDateRule struct {
-	enable bool
-	inverse bool
-	date time.Duration
-}
-
-type NRule struct {
-	enable bool
-	inverse bool
-	keep int
-}
+	}
