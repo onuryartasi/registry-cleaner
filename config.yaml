@@ -4,3 +4,7 @@ ImageRule:
   images:
   - foo/bar
   - abc/xyz
+NRule:
+  enable: true
+  patter:
+  - xyz*

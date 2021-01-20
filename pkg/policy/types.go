@@ -1,28 +1,28 @@
 package policy
 
 type Policy struct {
-		ImageRule struct {
-			Enable  bool     `yaml:"enable"`
-			Inverse bool     `yaml:"inverse"`
-			Images []string `yaml:"images"`
-		} `yaml:"ImageRule"`
+	ImageRule struct {
+		Enable  bool     `yaml:"enable"`
+		Inverse bool     `yaml:"inverse"`
+		Images []string `yaml:"images"`
+	} `yaml:"ImageRule"`
 
-		NRule struct {
-			Enable  bool `yaml:"enable"`
-			Inverse bool `yaml:"inverse"`
-			Keep    int  `yaml:"keep"`
-		} `yaml:"NRule"`
+	NRule struct {
+		Enable  bool `yaml:"enable"`
+		Inverse bool `yaml:"inverse"`
+		Keep    int  `yaml:"keep"`
+	} `yaml:"NRule"`
 
-		RegexRule struct {
-			Enable  bool     `yaml:"enable"`
-			Inverse bool     `yaml:"inverse"`
-			Pattern []string `yaml:"pattern"`
-		} `yaml:"RegexRule"`
+	RegexRule struct {
+		Enable  bool     `yaml:"enable"`
+		Inverse bool     `yaml:"inverse"`
+		Pattern []string `yaml:"pattern"`
+	} `yaml:"RegexRule"`
 
-		OlderThanGivenDateRule struct {
-			Enable  bool   `yaml:"enable"`
-			Inverse bool   `yaml:"inverse"`
-			Date    string `yaml:"date"`
-		} `yaml:"OlderThanGivenDateRule"`
+	OlderThanGivenDateRule struct {
+		Enable  bool   `yaml:"enable"`
+		Inverse bool   `yaml:"inverse"`
+		Date    string `yaml:"date"`
+	} `yaml:"OlderThanGivenDateRule"`
 
-	}
+}

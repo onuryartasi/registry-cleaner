@@ -21,7 +21,12 @@ func main(){
 	flag.Parse()
 
 
-	policy.Init()
+	policy := policy.Initiliaze()
+	//policy.Apply(Image)
+
+	log.Printf("%+v",policy)
+
+
 
 	var startedTime = time.Now()
 	var isAllGroup = false
