@@ -163,3 +163,4 @@ func (registry Registry) DeleteTag(imageName, digest string) int {
 
 	return resp.StatusCode
 }
+

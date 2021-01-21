@@ -11,6 +11,7 @@ type Policy struct {
 		Enable  bool `yaml:"enable"`
 		Inverse bool `yaml:"inverse"`
 		Keep    int  `yaml:"keep"`
+		IncludeLatestTag bool `yaml:"includeLatestTag"`
 	} `yaml:"NRule"`
 
 	RegexRule struct {

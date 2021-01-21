@@ -7,6 +7,7 @@ type Catalog struct {
 }
 
 
+//TODO: change struct name to Image
 type Tag struct {
 	Name string   `json:"name"`
 	Tags []string `json:"tags"`
@@ -35,6 +36,7 @@ type SortTag struct{
 	Tag string
 	Digest string
 	TimeAgo float64
+	Name string
 }
 
 type Registry struct {

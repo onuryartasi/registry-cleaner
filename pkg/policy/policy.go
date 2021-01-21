@@ -1,11 +1,13 @@
 package policy
 
 import (
+	"github.com/onuryartasi/registry-management/pkg/registry"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
-	"gopkg.in/yaml.v2"
 )
 
+var client = registry.Registry{}
 func Initiliaze() Policy{
 	policy := Policy{}
 
@@ -25,30 +27,36 @@ func Initiliaze() Policy{
 }
 
 
-func (policy Policy) filter(image string) bool{
-	var deleteImage = true
-	if policy.ImageRule.Enable == true {
-		//todo: Write ImageRule function and call it.
-		//todo: deleteImage = deleteImage && ImageRuleFunctionResult
-	}
+func (policy Policy) Apply( cl registry.Registry, image registry.Tag) {
+	//var deleteImage = true
+	client = cl
+
+	//if policy.RegexRule.Enable == true {
+	//	//todo: Write RegexRule function and call it.
+	//	// deleteImage = deleteImage && RegexRuleFunctionResult
+	//}
+
+	//if policy.ImageRule.Enable == true {
+	//	//todo: Write ImageRule function and call it.
+	//	//todo: deleteImage = deleteImage && ImageRuleFunctionResult
+	//}
+	//
 
 	if policy.NRule.Enable == true {
+		policy.nRuleCheck(image)
 		//todo: Write NRule function and call it.
 		//todo: deleteImage = deleteImage && NRuleFunctionResult
 	}
 
-	if policy.OlderThanGivenDateRule.Enable == true {
-		//todo: Write OlderThanGivenDateRule function and call it.
-		//todo: deleteImage = deleteImage && NRuleFunctionResult
-	}
 
-	if policy.RegexRule.Enable == true {
-		//todo: Write RegexRule function and call it.
-		// deleteImage = deleteImage && RegexRuleFunctionResult
-	}
+	//if policy.OlderThanGivenDateRule.Enable == true {
+	//	//todo: Write OlderThanGivenDateRule function and call it.
+	//	//todo: deleteImage = deleteImage && NRuleFunctionResult
+	//}
+	//
 
-	if deleteImage == true {
-		//todo: call delete image function
-	}
-	return true
+
+	//if deleteImage == true {
+	//	//todo: call delete image function
+	//}
 }
