@@ -2,10 +2,11 @@ package policy
 
 import (
 	"encoding/json"
-	"github.com/onuryartasi/registry-management/pkg/registry"
 	"log"
 	"sort"
 	"time"
+
+	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
 func (policy Policy) nRuleCheck(image registry.Tag) {
@@ -31,7 +32,7 @@ func (policy Policy) nRuleCheck(image registry.Tag) {
 
 			digest := client.GetDigest(image.Name, tag)
 			tagList = append(tagList, registry.SortTag{Tag: tag, TimeAgo: startedTime.Sub(v1Compatibility.Created).Hours(), Digest: digest, Name: image.Name})
-			log.Printf("Image: %s, created date: %s", tag, startedTime.Sub(v1Compatibility.Created).Hours())
+			log.Printf("Image: %s, created date: %v", tag, startedTime.Sub(v1Compatibility.Created).Hours())
 		}
 
 		sort.SliceStable(tagList, func(i, j int) bool {
