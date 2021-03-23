@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/onuryartasi/registry-management/pkg/policy"
-	registry "github.com/onuryartasi/registry-management/pkg/registry"
+	"github.com/onuryartasi/registry-management/pkg/registry"
 	"log"
 
 )
