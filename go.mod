@@ -1,3 +1,3 @@
-module github.com/onuryartasi/registry-management
+module github.com/onuyartasi/registry-cleaner
 
-go 1.13
+go 1.16

@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	registry "github.com/onuryartasi/registry-management/pkg/registry"
+	"github.com/onuyartasi/registry-cleaner/pkg/registry"
 	"log"
 	"sort"
 	"time"
@@ -26,7 +26,6 @@ func main(){
 	if len(groupName) == 0 {
 		isAllGroup = true
 	}
-
 	client := registry.NewClient(host,port)
 	client.BasicAuthentication(username,password)
 
