@@ -46,7 +46,7 @@ func (registry Registry) GetCatalog() Catalog {
 	return catalog
 }
 
-//splitRepositories split group and image name ex. foo/bar:latest => group = foo, image = bar (Default group is `other`)
+//splitRepositories split group and image name ex. foo/bar:latest => group = foo, image = bar (Default group is empty string)
 func SplitRepositories(repositories []string) map[string][]string {
 	var group, repoName string
 	var registryMap = make(map[string][]string)
@@ -80,6 +80,28 @@ func SplitRepositories(repositories []string) map[string][]string {
 
 	return registryMap
 }
+
+func SplitImage(image string) (group string, name string) {
+		splitted := strings.Split(image, "/")
+		if len(splitted) == 1 {
+			group = ""
+			name = splitted[0]
+		} else {
+			// TODO: refactor
+			name = splitted[len(splitted)-1]
+			group = ""
+			subSplitted := splitted[0 : len(splitted)-1]
+			for i, v := range subSplitted {
+				if i == 0 {
+					group = group + v
+				} else {
+					group = group + "/" + v
+				}
+			}
+		}
+		return group,name
+}
+
 
 //getDigest return image's digest with `application/vnd.docker.distribution.manifest.v2+json`
 func (registry Registry) GetDigest(imageName, tag string) string {
@@ -126,8 +148,8 @@ func (registry Registry) GetManifest(imageName, tag string) Manifests {
 	return manifests
 }
 
-func (registry Registry) GetTags(groupName, repoName string) Tag {
-	var tags Tag
+func (registry Registry) GetImageTags(groupName, repoName string) Image {
+	var image Image
 	url := fmt.Sprintf("http://%s:%s/v2/%s/%s/tags/list", registry.HOST, registry.PORT, groupName, repoName)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -138,12 +160,12 @@ func (registry Registry) GetTags(groupName, repoName string) Tag {
 		log.Fatal(err)
 	}
 
-	err = json.Unmarshal(bodyBytes, &tags)
+	err = json.Unmarshal(bodyBytes, &image)
 	if err != nil {
 		log.Println("Error unmarshal tags", err)
 	}
 
-	return tags
+	return image
 }
 
 func (registry Registry) DeleteTag(imageName, digest string) int {

@@ -7,7 +7,7 @@ type Catalog struct {
 }
 
 //TODO: change struct name to Image
-type Tag struct {
+type Image struct {
 	Name string   `json:"name"`
 	Tags []string `json:"tags"`
 }
