@@ -41,6 +41,7 @@ func main() {
 		if isAllGroup || gN == groupName {
 			for _, v := range rL {
 				image := client.GetImageTags(gN, v)
+				log.Println(image)
 				policy.Apply(client,image)
 			}
 		}

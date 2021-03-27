@@ -35,7 +35,7 @@ func Initiliaze() Policy {
 func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 	//var deleteImage = true
 	client = cl
-	var deletableImages []Image
+	//var deletableImages []Image
 
 
 	//if policy.RegexRule.Enable == true {
@@ -48,8 +48,8 @@ func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 		//todo: deleteImage = deleteImage && ImageRuleFunctionResul
 
 		 imageRuleDeletable := policy.imageRuleCheck(image)
-		 deletableImages = append(deletableImages,imageRuleDeletable[:]...)
-		 log.Println(deletableImages)
+		 //deletableImages = append(deletableImages,imageRuleDeletable[:]...)
+		 log.Printf("ASd %v",imageRuleDeletable)
 	}
 
 

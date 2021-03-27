@@ -1,5 +1,5 @@
 NRule:
-  enable: true
+  enable: false
   size: 1
 ImageRule:
   enable: true
