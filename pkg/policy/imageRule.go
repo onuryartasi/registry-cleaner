@@ -8,11 +8,10 @@ import (
 
 func (policy Policy) imageRuleCheck(image registry.Image)  []Image{
 	var deletableImage  []Image
-		group,name := registry.SplitImage(image.Name)
 
 		if policy.ImageRule.Keep  {
 			for _,v := range *imageRuleImages {
-				if v.group == group && v.name == name  {
+				if v.name == image.Name  {
 					if v.tag == "" {
 							continue
 						} else {
@@ -20,27 +19,27 @@ func (policy Policy) imageRuleCheck(image registry.Image)  []Image{
 								if v.tag == tag {
 										continue
 									}else {
-										deletableImage = append(deletableImage,Image{name: name,group: group,tag: tag})
+										deletableImage = append(deletableImage,Image{name: image.Name,tag: tag})
 									}
 								}
 							}
 						}else {
 								for _, tag := range image.Tags {
-									deletableImage = append(deletableImage,Image{name: name,group: group,tag: tag})
+									deletableImage = append(deletableImage,Image{name: image.Name,tag: tag})
 								}
 						}
 					}
 				}else{
 					for _,v := range *imageRuleImages {
-					if v.group == group && v.name == name  {
+					if v.name == image.Name  {
 						if v.tag == "" {
 							for _, tag := range image.Tags {
-								deletableImage = append(deletableImage,Image{name: name,group: group,tag: tag})
+								deletableImage = append(deletableImage,Image{name: image.Name,tag: tag})
 							}
 						} else {
 							for _, tag := range image.Tags {
 								if v.tag == tag {
-									deletableImage = append(deletableImage,Image{name: name,group: group,tag: tag})
+									deletableImage = append(deletableImage,Image{name: image.Name,tag: tag})
 								}else {
 									continue
 								}

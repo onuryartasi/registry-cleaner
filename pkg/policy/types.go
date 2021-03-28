@@ -28,7 +28,6 @@ type Policy struct {
 }
 
 type Image struct {
-	group string
 	name string
 	tag   string
 }

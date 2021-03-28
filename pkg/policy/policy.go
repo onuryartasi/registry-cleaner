@@ -32,24 +32,32 @@ func Initiliaze() Policy {
 	return policy
 }
 
+//TODO: Change deletableImages to registry.Image type
+//type Image struct {
+//	Name string   `json:"name"`
+//	Tags []string `json:"tags"`
+//}
+
 func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 	//var deleteImage = true
 	client = cl
 	//var deletableImages []Image
 
 
-	//if policy.RegexRule.Enable == true {
-	//	//todo: Write RegexRule function and call it.
-	//	// deleteImage = deleteImage && RegexRuleFunctionResult
-	//}
+	if policy.RegexRule.Enable == true {
+		//todo: Write RegexRule function and call it.
+		// deleteImage = deleteImage && RegexRuleFunctionResult
+		 deletableImages := policy.regexRuleCheck(image)
+		 log.Println("Deletable Regex Image",deletableImages)
+	}
 
 	if policy.ImageRule.Enable == true {
 		//todo: Write ImageRule function and call it.
 		//todo: deleteImage = deleteImage && ImageRuleFunctionResul
 
-		 imageRuleDeletable := policy.imageRuleCheck(image)
+		 //imageRuleDeletable := policy.imageRuleCheck(image)
 		 //deletableImages = append(deletableImages,imageRuleDeletable[:]...)
-		 log.Printf("ASd %v",imageRuleDeletable)
+
 	}
 
 
@@ -81,26 +89,10 @@ func (policy Policy) setImageRuleImages() {
 		tag := strings.Split(repo, ":")
 		if len(tag) > 1 {
 			image.tag = tag[1]
+		}else{
+			image.tag = ""
 		}
-		splitted := strings.Split(tag[0], "/")
-		if len(splitted) == 1 {
-			image.group = ""
-			image.name = splitted[0]
-		} else {
-			// TODO: refactor
-			image.name = splitted[len(splitted)-1]
-			image.group = ""
-			subSplitted := splitted[0 : len(splitted)-1]
-			for i, v := range subSplitted {
-				if i == 0 {
-					image.group = image.group + v
-				} else {
-					image.group = image.group + "/" + v
-				}
-			}
-			imagess = append(imagess, image)
-
-		}
+		image.name = tag[0]
 	}
 	imageRuleImages = &imagess
 

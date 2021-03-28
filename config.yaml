@@ -6,3 +6,8 @@ ImageRule:
   keep: false
   images:
     - g1/hello-world
+RegexRule:
+  enable: true
+  keep: false
+  pattern:
+    - g1/hello-worl

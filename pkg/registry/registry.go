@@ -81,28 +81,6 @@ func SplitRepositories(repositories []string) map[string][]string {
 	return registryMap
 }
 
-func SplitImage(image string) (group string, name string) {
-		splitted := strings.Split(image, "/")
-		if len(splitted) == 1 {
-			group = ""
-			name = splitted[0]
-		} else {
-			// TODO: refactor
-			name = splitted[len(splitted)-1]
-			group = ""
-			subSplitted := splitted[0 : len(splitted)-1]
-			for i, v := range subSplitted {
-				if i == 0 {
-					group = group + v
-				} else {
-					group = group + "/" + v
-				}
-			}
-		}
-		return group,name
-}
-
-
 //getDigest return image's digest with `application/vnd.docker.distribution.manifest.v2+json`
 func (registry Registry) GetDigest(imageName, tag string) string {
 	client := &http.Client{}
