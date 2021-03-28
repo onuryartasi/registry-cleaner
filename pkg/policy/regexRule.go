@@ -6,8 +6,8 @@ import (
 	"regexp"
 )
 
-func (policy Policy) regexRuleCheck(image registry.Image) []Image {
-	deletableImages := []Image{}
+func (policy Policy) regexRuleCheck(image registry.Image) registry.Image {
+	var deletableTags []string
 	for _, pattern := range policy.RegexRule.Pattern {
 
 		//match, err :=regexp.MatchString(pattern,image.Name)
@@ -19,9 +19,13 @@ func (policy Policy) regexRuleCheck(image registry.Image) []Image {
 		match := r.MatchString(image.Name)
 		if match {
 			for _, tag := range image.Tags {
-				deletableImages = append(deletableImages, Image{name: image.Name, tag: tag})
+				deletableTags = append(deletableTags, tag)
 			}
 		}
 	}
-	return deletableImages
+
+	if len(deletableTags) > 0 {
+		return registry.Image{Name: image.Name, Tags: deletableTags}
+	}
+	return registry.Image{}
 }

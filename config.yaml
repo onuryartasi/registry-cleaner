@@ -7,7 +7,7 @@ ImageRule:
   images:
     - g1/hello-world
 RegexRule:
-  enable: true
+  enable: false
   keep: false
   pattern:
     - g1/hello-worl

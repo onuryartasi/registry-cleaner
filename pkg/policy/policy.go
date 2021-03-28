@@ -43,19 +43,18 @@ func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 	client = cl
 	//var deletableImages []Image
 
-	if policy.RegexRule.Enable == true {
+	if policy.RegexRule.Enable {
 		//todo: Write RegexRule function and call it.
 		// deleteImage = deleteImage && RegexRuleFunctionResult
 		deletableImages := policy.regexRuleCheck(image)
 		log.Println("Deletable Regex Image", deletableImages)
 	}
 
-	if policy.ImageRule.Enable == true {
+	if policy.ImageRule.Enable {
 		//todo: Write ImageRule function and call it.
 		//todo: deleteImage = deleteImage && ImageRuleFunctionResul
-
-		//imageRuleDeletable := policy.imageRuleCheck(image)
-		//deletableImages = append(deletableImages,imageRuleDeletable[:]...)
+		deletableTags := policy.imageRuleCheck(image)
+		log.Println("Deletable Image Rule ", deletableTags)
 
 	}
 
@@ -79,15 +78,17 @@ func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 func (policy Policy) setImageRuleImages() {
 
 	var imagess []Image
-	for _, repo := range policy.ImageRule.Images {
+	log.Println("asddasa", policy.ImageRule.Images)
+	for _, rawImage := range policy.ImageRule.Images {
 		var image Image
-		tag := strings.Split(repo, ":")
+		tag := strings.Split(rawImage, ":")
 		if len(tag) > 1 {
 			image.tag = tag[1]
 		} else {
 			image.tag = ""
 		}
 		image.name = tag[0]
+		imagess = append(imagess, image)
 	}
 	imageRuleImages = &imagess
 
