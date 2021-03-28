@@ -43,23 +43,21 @@ func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 	client = cl
 	//var deletableImages []Image
 
-
 	if policy.RegexRule.Enable == true {
 		//todo: Write RegexRule function and call it.
 		// deleteImage = deleteImage && RegexRuleFunctionResult
-		 deletableImages := policy.regexRuleCheck(image)
-		 log.Println("Deletable Regex Image",deletableImages)
+		deletableImages := policy.regexRuleCheck(image)
+		log.Println("Deletable Regex Image", deletableImages)
 	}
 
 	if policy.ImageRule.Enable == true {
 		//todo: Write ImageRule function and call it.
 		//todo: deleteImage = deleteImage && ImageRuleFunctionResul
 
-		 //imageRuleDeletable := policy.imageRuleCheck(image)
-		 //deletableImages = append(deletableImages,imageRuleDeletable[:]...)
+		//imageRuleDeletable := policy.imageRuleCheck(image)
+		//deletableImages = append(deletableImages,imageRuleDeletable[:]...)
 
 	}
-
 
 	//if policy.OlderThanGivenDateRule.Enable == true {
 	//	//todo: Write OlderThanGivenDateRule function and call it.
@@ -73,13 +71,10 @@ func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 		//todo: deleteImage = deleteImage && NRuleFunctionResult
 	}
 
-
-
 	//if deleteImage == true {
 	//	//todo: call delete image function
 	//}
 }
-
 
 func (policy Policy) setImageRuleImages() {
 
@@ -89,7 +84,7 @@ func (policy Policy) setImageRuleImages() {
 		tag := strings.Split(repo, ":")
 		if len(tag) > 1 {
 			image.tag = tag[1]
-		}else{
+		} else {
 			image.tag = ""
 		}
 		image.name = tag[0]

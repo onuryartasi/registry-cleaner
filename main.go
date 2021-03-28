@@ -27,7 +27,6 @@ func main() {
 		isAllGroup = true
 	}
 
-
 	client := registry.NewClient(*host, *port)
 	client.BasicAuthentication(*username, *password)
 
@@ -42,7 +41,7 @@ func main() {
 			for _, v := range rL {
 				image := client.GetImageTags(gN, v)
 				log.Println(image)
-				policy.Apply(client,image)
+				policy.Apply(client, image)
 			}
 		}
 	}
