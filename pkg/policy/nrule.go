@@ -9,10 +9,11 @@ import (
 	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
-func (policy Policy) nRuleCheck(image registry.Image) {
+func (policy Policy) nRuleCheck(image registry.Image) registry.Image {
 	var tagList []registry.SortTag
 	var v1Compatibility registry.V1Compatibility
 	var startedTime = time.Now()
+	var deletableTags []string
 
 	if len(image.Tags) > policy.NRule.Size {
 		for _, tag := range image.Tags {
@@ -39,9 +40,13 @@ func (policy Policy) nRuleCheck(image registry.Image) {
 			return tagList[i].TimeAgo < tagList[j].TimeAgo
 		})
 
-		//Return keeping tags
-		lastTags := tagList[policy.NRule.Size:]
-		log.Println(lastTags)
-
+		//Return deletable tags
+		lastTags := tagList[0:policy.NRule.Size]
+		for _, v := range lastTags {
+			deletableTags = append(deletableTags, v.Tag)
+		}
+		log.Println(deletableTags)
+		return registry.Image{Name: image.Name, Tags: deletableTags}
 	}
+	return registry.Image{}
 }

@@ -73,6 +73,7 @@ func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 	//if deleteImage == true {
 	//	//todo: call delete image function
 	//}
+
 }
 
 func (policy Policy) setImageRuleImages() {
