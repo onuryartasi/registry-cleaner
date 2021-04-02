@@ -31,11 +31,11 @@ type V1Compatibility struct {
 	Parent  string    `json:"parent"`
 }
 
-type SortTag struct {
-	Tag     string
-	Digest  string
-	TimeAgo float64
-	Name    string
+type Tag struct {
+	Name        string
+	Digest      string
+	CreatedDate time.Time
+	ImageName   string
 }
 
 type Registry struct {
