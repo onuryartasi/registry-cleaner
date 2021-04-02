@@ -2,17 +2,15 @@ package policy
 
 import (
 	"encoding/json"
+	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 	"log"
 	"sort"
-	"time"
-
-	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
 func (policy Policy) nRuleCheck(image registry.Image) registry.Image {
-	var tagList []registry.SortTag
+
+	var tagList []registry.Tag
 	var v1Compatibility registry.V1Compatibility
-	var startedTime = time.Now()
 	var deletableTags []string
 
 	if len(image.Tags) > policy.NRule.Size {
@@ -32,21 +30,20 @@ func (policy Policy) nRuleCheck(image registry.Image) registry.Image {
 			}
 
 			digest := client.GetDigest(image.Name, tag)
-			tagList = append(tagList, registry.SortTag{Tag: tag, TimeAgo: startedTime.Sub(v1Compatibility.Created).Hours(), Digest: digest, Name: image.Name})
+			tagList = append(tagList, registry.Tag{Name: tag, CreatedDate: v1Compatibility.Created, Digest: digest, ImageName: image.Name})
 			//log.Printf("Image %s, Tag: %s, created date: %v", image.Name ,tag, startedTime.Sub(v1Compatibility.Created).Hours())
 		}
 
 		sort.SliceStable(tagList, func(i, j int) bool {
-			return tagList[i].TimeAgo < tagList[j].TimeAgo
+			return tagList[i].CreatedDate.After(tagList[j].CreatedDate)
 		})
 
 		//Return deletable tags
-		lastTags := tagList[0:policy.NRule.Size]
-		for _, v := range lastTags {
-			deletableTags = append(deletableTags, v.Tag)
+		lastTags := tagList[policy.NRule.Size:]
+		for _, tag := range lastTags {
+			deletableTags = append(deletableTags, tag.Name)
 		}
-		log.Println(deletableTags)
 		return registry.Image{Name: image.Name, Tags: deletableTags}
 	}
-	return registry.Image{}
+	return image
 }

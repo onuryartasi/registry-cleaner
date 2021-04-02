@@ -1,8 +1,8 @@
 NRule:
-  enable: false
-  size: 1
-ImageRule:
   enable: true
+  size: 2
+ImageRule:
+  enable: false
   keep: false
   images:
     - g1/hello-world
