@@ -58,11 +58,11 @@ func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 
 	}
 
-	//if policy.OlderThanGivenDateRule.Enable == true {
-	//	//todo: Write OlderThanGivenDateRule function and call it.
-	//	//todo: deleteImage = deleteImage && NRuleFunctionResult
-	//}
-	//
+	if policy.OlderThanGivenDateRule.Enable == true {
+		//todo: Write OlderThanGivenDateRule function and call it.
+		//todo: deleteImage = deleteImage && NRuleFunctionResult
+		policy.olderThanGivenDateCheck(image)
+	}
 
 	if policy.NRule.Enable {
 		policy.nRuleCheck(image)
