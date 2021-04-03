@@ -1,9 +1,10 @@
 package policy
 
 import (
-	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 	"log"
 	"regexp"
+
+	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
 func (policy Policy) regexRuleCheck(image registry.Image) registry.Image {
@@ -18,9 +19,7 @@ func (policy Policy) regexRuleCheck(image registry.Image) registry.Image {
 
 		match := r.MatchString(image.Name)
 		if match {
-			for _, tag := range image.Tags {
-				deletableTags = append(deletableTags, tag)
-			}
+			deletableTags = append(deletableTags, image.Tags...)
 		}
 	}
 

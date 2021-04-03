@@ -25,9 +25,7 @@ func (policy Policy) imageRuleCheck(image registry.Image) registry.Image {
 					}
 				}
 			} else {
-				for _, tag := range image.Tags {
-					deletableTags = append(deletableTags, tag)
-				}
+				deletableTags = append(deletableTags, image.Tags...)
 			}
 		}
 	} else {
@@ -36,9 +34,7 @@ func (policy Policy) imageRuleCheck(image registry.Image) registry.Image {
 			if v.name == image.Name {
 
 				if v.tag == "" {
-					for _, tag := range image.Tags {
-						deletableTags = append(deletableTags, tag)
-					}
+					deletableTags = append(deletableTags, image.Tags...)
 				} else {
 					for _, tag := range image.Tags {
 						if v.tag == tag {

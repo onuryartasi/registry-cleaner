@@ -2,9 +2,10 @@ package policy
 
 import (
 	"encoding/json"
-	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 	"log"
 	"time"
+
+	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
 func (policy Policy) olderThanGivenDateCheck(image registry.Image) registry.Image {
@@ -14,7 +15,7 @@ func (policy Policy) olderThanGivenDateCheck(image registry.Image) registry.Imag
 		log.Println("Cannot parse given date with static time layout. Check layout table...")
 		return image
 	}
-	var tagList []registry.Tag
+
 	var v1Compatibility registry.V1Compatibility
 	var deletableTags []string
 
@@ -32,9 +33,6 @@ func (policy Policy) olderThanGivenDateCheck(image registry.Image) registry.Imag
 		if err != nil {
 			log.Println("Error Unmarshal compatibility ", err)
 		}
-
-		digest := client.GetDigest(image.Name, tag)
-		tagList = append(tagList, registry.Tag{Name: tag, CreatedDate: v1Compatibility.Created, Digest: digest, ImageName: image.Name})
 
 		if parsedDate.After(v1Compatibility.Created) {
 			deletableTags = append(deletableTags, tag)

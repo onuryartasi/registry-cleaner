@@ -3,12 +3,14 @@ package registry
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/onuryartasi/registry-cleaner/pkg/logging"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/onuryartasi/registry-cleaner/pkg/logging"
 )
 
 var logger *logrus.Logger
