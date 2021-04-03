@@ -9,6 +9,12 @@ import (
 
 func (policy Policy) olderThanGivenDateCheck(image registry.Image) registry.Image {
 
+
+	parsedDate, err := parseDate(policy.OlderThanGivenDateRule.Date)
+	if err != nil {
+		log.Println("Cannot parse given date with static time layout. Check layout table...")
+		return image
+	}
 	var tagList []registry.Tag
 	var v1Compatibility registry.V1Compatibility
 	var deletableTags []string
@@ -30,12 +36,8 @@ func (policy Policy) olderThanGivenDateCheck(image registry.Image) registry.Imag
 
 		digest := client.GetDigest(image.Name, tag)
 		tagList = append(tagList, registry.Tag{Name: tag, CreatedDate: v1Compatibility.Created, Digest: digest, ImageName: image.Name})
-		parsedDate, err := parseDate(policy.OlderThanGivenDateRule.Date)
-		if err != nil {
-			log.Fatal("Cannot parse given date with static time layout. Check layout table...")
 
-		}
-		log.Printf("GivenDate: %s, imageDate: %s, imageName: %s", parsedDate, v1Compatibility.Created, tag)
+
 		if parsedDate.After(v1Compatibility.Created) {
 			deletableTags = append(deletableTags, tag)
 		}
