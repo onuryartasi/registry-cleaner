@@ -1,5 +1,5 @@
 NRule:
-  enable: true
+  enable: false
   size: 2
 ImageRule:
   enable: false
@@ -11,3 +11,7 @@ RegexRule:
   keep: false
   pattern:
     - g1/hello-worl
+OlderThanGivenDateRule:
+  enable: true
+  keep: false
+  date: "09.03.2021 21:27"
