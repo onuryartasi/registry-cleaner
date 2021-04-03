@@ -2,7 +2,6 @@ package policy
 
 import (
 	"github.com/onuryartasi/registry-cleaner/pkg/registry"
-	"log"
 )
 
 func (policy Policy) imageRuleCheck(image registry.Image) registry.Image {
@@ -12,7 +11,6 @@ func (policy Policy) imageRuleCheck(image registry.Image) registry.Image {
 	if policy.ImageRule.Keep {
 
 		for _, v := range *imageRuleImages {
-			log.Println("xyz2 ", v.name, image.Name)
 			if v.name == image.Name {
 
 				if v.tag == "" {

@@ -3,11 +3,19 @@ package registry
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/onuryartasi/registry-cleaner/pkg/logging"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
 )
+
+var logger *logrus.Logger
+
+func init() {
+	logger = logging.GetLogger()
+}
 
 // NewClient return Registry object for reuse.
 func NewClient(host, port string) Registry {
@@ -25,22 +33,22 @@ func (registry Registry) GET(path string) (*http.Response, error) {
 	return resp, err
 }
 
-//getCatalog rreturn v2 catalog for given registry.
+//getCatalog return v2 catalog for given registry.
 func (registry Registry) GetCatalog() Catalog {
 	var catalog Catalog
 	resp, err := registry.GET("/v2/_catalog")
 	if err != nil {
-		log.Fatalln("Error getting version", err)
+		logger.Fatalln("Error getting version", err)
 	}
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		logger.Errorln(err)
 	}
 
 	err = json.Unmarshal(bodyBytes, &catalog)
 	if err != nil {
-		log.Println("Unmarshall error ", err)
+		logger.Errorln("Unmarshall error ", err)
 	}
 
 	return catalog
