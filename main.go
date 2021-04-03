@@ -2,8 +2,7 @@ package main
 
 import (
 	"flag"
-	"log"
-
+	"github.com/onuryartasi/registry-cleaner/pkg/logging"
 	"github.com/onuryartasi/registry-cleaner/pkg/policy"
 	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
@@ -17,6 +16,8 @@ func main() {
 	//var dryRun = *flag.Bool("dry-run",false,"Print old images, don't remove.")
 	var groupName = *flag.String("group", "", "Remove images from group")
 	flag.Parse()
+
+	logger := logging.GetLogger()
 
 	policy := policy.Initiliaze()
 
@@ -32,7 +33,9 @@ func main() {
 
 	//var v1Compatibility registry.V1Compatibility
 	catalog := client.GetCatalog()
-	log.Printf("Founded %d unique images", len(catalog.Repositories))
+
+	logger.Infof("Founded %d unique images", len(catalog.Repositories))
+
 	repoMap := registry.SplitRepositories(catalog.Repositories)
 
 	//TODO: Get group part by part instead of all
@@ -40,7 +43,7 @@ func main() {
 		if isAllGroup || gN == groupName {
 			for _, v := range rL {
 				image := client.GetImageTags(gN, v)
-				log.Println(image)
+				logger.Infoln(image)
 				policy.Apply(client, image)
 			}
 		}

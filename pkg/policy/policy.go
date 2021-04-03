@@ -1,6 +1,8 @@
 package policy
 
 import (
+	"github.com/onuryartasi/registry-cleaner/pkg/logging"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -11,6 +13,12 @@ import (
 
 var client = registry.Registry{}
 var imageRuleImages *[]Image
+
+var logger *logrus.Logger
+
+func init() {
+	logger = logging.GetLogger()
+}
 
 func Initiliaze() Policy {
 	policy := Policy{}
@@ -79,7 +87,6 @@ func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 func (policy Policy) setImageRuleImages() {
 
 	var imagess []Image
-	log.Println("asddasa", policy.ImageRule.Images)
 	for _, rawImage := range policy.ImageRule.Images {
 		var image Image
 		tag := strings.Split(rawImage, ":")
