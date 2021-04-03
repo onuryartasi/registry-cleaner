@@ -20,13 +20,13 @@ func init() {
 }
 
 // NewClient return Registry object for reuse.
-func NewClient(host, port string) Registry {
-	return Registry{HOST: host, PORT: port}
+func NewClient(host, port string, dryRun bool) Registry {
+	return Registry{HOST: host, PORT: port, DryRun: dryRun}
 }
 
 //BasicAuthentication Set basic auth given registry.
 func (registry *Registry) BasicAuthentication(user, password string) {
-	*registry = Registry{HOST: registry.HOST, PORT: registry.PORT, USER: user, PASSWORD: password}
+	*registry = Registry{HOST: registry.HOST, PORT: registry.PORT, USER: user, PASSWORD: password, DryRun: registry.DryRun}
 }
 
 //GET return  http response for given path.
@@ -92,21 +92,29 @@ func SplitRepositories(repositories []string) map[string][]string {
 }
 
 //getDigest return image's digest with `application/vnd.docker.distribution.manifest.v2+json`
-func (registry Registry) GetDigest(imageName, tag string) string {
+func (registry Registry) GetDigest(imageName, tag string) (string, error) {
 	client := &http.Client{}
+	var digest string
+
 	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, tag)
 	req, err := http.NewRequest("HEAD", url, nil)
 	if err != nil {
 		log.Println("Cannot get docker image digest", err)
+		return "", err
 	}
 
 	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Cannot get digest", err)
+		return "", err
 	}
-
-	return resp.Header["Docker-Content-Digest"][0]
+	if resp.StatusCode == 200 {
+		digest = resp.Header["Docker-Content-Digest"][0]
+	} else {
+		return "", fmt.Errorf("Cannot get digest statusCode:%v", resp.StatusCode)
+	}
+	return digest, nil
 }
 
 func (registry Registry) GetManifest(imageName, tag string) Manifests {
@@ -138,7 +146,13 @@ func (registry Registry) GetManifest(imageName, tag string) Manifests {
 
 func (registry Registry) GetImageTags(groupName, repoName string) Image {
 	var image Image
-	url := fmt.Sprintf("http://%s:%s/v2/%s/%s/tags/list", registry.HOST, registry.PORT, groupName, repoName)
+	var url string
+	if len(groupName) > 0 {
+		url = fmt.Sprintf("http://%s:%s/v2/%s/%s/tags/list", registry.HOST, registry.PORT, groupName, repoName)
+	} else {
+		url = fmt.Sprintf("http://%s:%s/v2/%s/tags/list", registry.HOST, registry.PORT, repoName)
+	}
+
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
@@ -156,12 +170,13 @@ func (registry Registry) GetImageTags(groupName, repoName string) Image {
 	return image
 }
 
-func (registry Registry) DeleteTag(imageName, digest string) int {
+func (registry Registry) DeleteTag(imageName, digest string) (int, error) {
 	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, digest)
 	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
-		log.Println("Cannot get docker image digest", err)
+		logger.Errorln("Cannot construct new request", err)
+		return 0, err
 	}
 
 	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
@@ -171,8 +186,9 @@ func (registry Registry) DeleteTag(imageName, digest string) int {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("Cannot get digest", err)
+		logger.Errorf("Cannot delete tag with digest %s:%s error: %s", imageName, digest, err)
+		return resp.StatusCode, err
 	}
 
-	return resp.StatusCode
+	return resp.StatusCode, nil
 }

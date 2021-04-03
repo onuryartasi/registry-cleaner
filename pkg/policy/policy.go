@@ -16,14 +16,13 @@ import (
 
 var client = registry.Registry{}
 var imageRuleImages *[]Image
-
 var logger *logrus.Logger
 
 func init() {
 	logger = logging.GetLogger()
 }
 
-func Initiliaze() Policy {
+func Initialize() Policy {
 	policy := Policy{}
 
 	//todo: Add Environment variable for policy file.
@@ -55,35 +54,29 @@ func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 	//var deletableImages []Image
 
 	if policy.RegexRule.Enable {
-		//todo: Write RegexRule function and call it.
-		// deleteImage = deleteImage && RegexRuleFunctionResult
-		deletableImages := policy.regexRuleCheck(image)
-		log.Println("Deletable Regex Image", deletableImages)
+		image = policy.regexRuleCheck(image)
+
 	}
 
 	if policy.ImageRule.Enable {
-		//todo: Write ImageRule function and call it.
-		//todo: deleteImage = deleteImage && ImageRuleFunctionResul
-		deletableTags := policy.imageRuleCheck(image)
-		log.Println("Deletable Image Rule ", deletableTags)
+		image = policy.imageRuleCheck(image)
 
 	}
 
 	if policy.OlderThanGivenDateRule.Enable {
-		//todo: Write OlderThanGivenDateRule function and call it.
-		//todo: deleteImage = deleteImage && NRuleFunctionResult
-		policy.olderThanGivenDateCheck(image)
+		image = policy.olderThanGivenDateCheck(image)
 	}
 
 	if policy.NRule.Enable {
-		policy.nRuleCheck(image)
-		//todo: Write NRule function and call it.
-		//todo: deleteImage = deleteImage && NRuleFunctionResult
+		image = policy.nRuleCheck(image)
+
 	}
 
-	//if deleteImage == true {
-	//	//todo: call delete image function
-	//}
+	if client.DryRun {
+		logger.Infoln(image)
+	} else {
+		deleteTags(image)
+	}
 
 }
 
@@ -103,4 +96,32 @@ func (policy Policy) setImageRuleImages() {
 	}
 	imageRuleImages = &imagess
 
+}
+
+func deleteTags(image registry.Image) {
+
+	for _, tag := range image.Tags {
+		digest, err := client.GetDigest(image.Name, tag)
+		if err != nil {
+			logger.Errorf("Cannot getting Image Digest in deleteTags. Image: %s:%s", image.Name, tag)
+			continue
+		}
+
+		statusCode, err := client.DeleteTag(image.Name, digest)
+		if err != nil {
+			logger.Errorf("Cannot delete Tag  status Code:%v, error: %s", statusCode, err)
+			continue
+		}
+		if logger.GetLevel() > logrus.ErrorLevel {
+			if statusCode == 202 {
+				logger.Infof("Deleted image: %s:%s", image.Name, tag)
+			}
+		}
+		if logger.GetLevel() > logrus.FatalLevel {
+			if statusCode != 202 {
+				logger.Infof("Cannot Delete image: %s:%s error: %v", image.Name, tag, err)
+			}
+		}
+
+	}
 }
