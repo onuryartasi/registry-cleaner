@@ -2,9 +2,10 @@ package policy
 
 import (
 	"encoding/json"
-	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 	"log"
 	"sort"
+
+	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
 func (policy Policy) nRuleCheck(image registry.Image) registry.Image {

@@ -1,14 +1,17 @@
 package policy
 
 import (
-	"github.com/onuryartasi/registry-cleaner/pkg/logging"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"log"
 	"strings"
 
-	"github.com/onuryartasi/registry-cleaner/pkg/registry"
+	"github.com/sirupsen/logrus"
+
+	"github.com/onuryartasi/registry-cleaner/pkg/logging"
+
 	"gopkg.in/yaml.v2"
+
+	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
 var client = registry.Registry{}
@@ -66,7 +69,7 @@ func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 
 	}
 
-	if policy.OlderThanGivenDateRule.Enable == true {
+	if policy.OlderThanGivenDateRule.Enable {
 		//todo: Write OlderThanGivenDateRule function and call it.
 		//todo: deleteImage = deleteImage && NRuleFunctionResult
 		policy.olderThanGivenDateCheck(image)
