@@ -30,7 +30,10 @@ func (policy Policy) nRuleCheck(image registry.Image) registry.Image {
 				log.Println("Error Unmarshal compatibility ", err)
 			}
 
-			digest := client.GetDigest(image.Name, tag)
+			digest, err := client.GetDigest(image.Name, tag)
+			if err != nil {
+				logger.Errorf("Cannot get digest in nrule")
+			}
 			tagList = append(tagList, registry.Tag{Name: tag, CreatedDate: v1Compatibility.Created, Digest: digest, ImageName: image.Name})
 			//log.Printf("Image %s, Tag: %s, created date: %v", image.Name ,tag, startedTime.Sub(v1Compatibility.Created).Hours())
 		}
@@ -46,5 +49,5 @@ func (policy Policy) nRuleCheck(image registry.Image) registry.Image {
 		}
 		return registry.Image{Name: image.Name, Tags: deletableTags}
 	}
-	return image
+	return registry.Image{}
 }

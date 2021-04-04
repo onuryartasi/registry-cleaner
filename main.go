@@ -14,13 +14,13 @@ func main() {
 	var username = flag.String("username", "", "Registry username")
 	var password = flag.String("password", "", "Registry password")
 	//var lastImages = *flag.Int("keep", 10, "Keep Last n images")
-	//var dryRun = *flag.Bool("dry-run",false,"Print old images, don't remove.")
+	var dryRun = flag.Bool("dry-run", false, "Print old images, don't remove.")
 	var groupName = *flag.String("group", "", "Remove images from group")
 	flag.Parse()
 
 	logger := logging.GetLogger()
 
-	policy := policy.Initiliaze()
+	policy := policy.Initialize()
 
 	var isAllGroup = false
 
@@ -29,7 +29,7 @@ func main() {
 		isAllGroup = true
 	}
 
-	client := registry.NewClient(*host, *port)
+	client := registry.NewClient(*host, *port, *dryRun)
 	client.BasicAuthentication(*username, *password)
 
 	//var v1Compatibility registry.V1Compatibility

@@ -43,4 +43,5 @@ type Registry struct {
 	PORT     string
 	USER     string
 	PASSWORD string
+	DryRun   bool
 }
