@@ -32,7 +32,6 @@ func main() {
 	client := registry.NewClient(*host, *port, *dryRun)
 	client.BasicAuthentication(*username, *password)
 
-	//var v1Compatibility registry.V1Compatibility
 	catalog := client.GetCatalog()
 
 	logger.Infof("Founded %d unique images", len(catalog.Repositories))
@@ -44,7 +43,6 @@ func main() {
 		if isAllGroup || gN == groupName {
 			for _, v := range rL {
 				image := client.GetImageTags(gN, v)
-				logger.Infoln(image)
 				policy.Apply(client, image)
 			}
 		}

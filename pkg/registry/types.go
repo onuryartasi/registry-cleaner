@@ -33,7 +33,6 @@ type V1Compatibility struct {
 
 type Tag struct {
 	Name        string
-	Digest      string
 	CreatedDate time.Time
 	ImageName   string
 }

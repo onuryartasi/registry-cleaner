@@ -53,5 +53,5 @@ func (policy Policy) imageRuleCheck(image registry.Image) registry.Image {
 	if len(deletableTags) > 0 {
 		return registry.Image{Name: image.Name, Tags: deletableTags}
 	}
-	return registry.Image{}
+	return image
 }
