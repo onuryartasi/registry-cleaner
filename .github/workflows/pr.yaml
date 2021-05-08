@@ -1,5 +1,6 @@
 name: Check CI
 on: workflow_dispatch
+env:
   GO-VERSION: '1.16.x'
 jobs:
   check-go:
