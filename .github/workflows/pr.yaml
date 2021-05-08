@@ -37,6 +37,7 @@ jobs:
         run: go build
 
   test:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -46,12 +47,12 @@ jobs:
         with:
           go-version: ${{ env.GO-VERSION }}
       - name: Run coverage
-        run: go test -race -coverprofile=coverage.out -covermode=atomic
+        run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
       - name: Upload coverage to Codecov
         run: bash <(curl -s https://codecov.io/bash)
 
   golangci:
-    name: lint
+    name: Golang lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
