@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"fmt"
 	"log"
 	"regexp"
 
@@ -14,12 +15,17 @@ func (policy Policy) regexRuleCheck(image registry.Image) registry.Image {
 		//match, err :=regexp.MatchString(pattern,image.Name)
 		r, err := regexp.Compile(pattern)
 		if err != nil {
-			log.Printf("regex error compile: %s", err)
+			log.Fatalf("regex error compile: %s", err)
 		}
 
-		match := r.MatchString(image.Name)
-		if match {
+		if r.MatchString(image.Name) {
 			deletableTags = append(deletableTags, image.Tags...)
+		} else {
+			for _, tag := range image.Tags {
+				if r.MatchString(fmt.Sprintf("%s:%s", image.Name, tag)) {
+					deletableTags = append(deletableTags, tag)
+				}
+			}
 		}
 	}
 
