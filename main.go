@@ -9,13 +9,16 @@ import (
 )
 
 func main() {
-	var host = flag.String("host", "localhost", "Registry host")
-	var port = flag.String("port", "5000", "Registry Port")
-	var username = flag.String("username", "", "Registry username")
-	var password = flag.String("password", "", "Registry password")
+	var host, port, username, password, groupName string
+	var dryRun bool
+	flag.StringVar(&host, "host", "localhost", "Registry host")
+	flag.StringVar(&port, "port", "5000", "Registry Port")
+	flag.StringVar(&username, "username", "", "Registry username")
+	flag.StringVar(&password, "password", "", "Registry password")
+	flag.StringVar(&groupName, "group", "", "Remove images from group")
 	//var lastImages = *flag.Int("keep", 10, "Keep Last n images")
-	var dryRun = flag.Bool("dry-run", false, "Print old images, don't remove.")
-	var groupName = *flag.String("group", "", "Remove images from group")
+	flag.BoolVar(&dryRun, "dry-run", false, "Print old images, don't remove.")
+
 	flag.Parse()
 
 	logger := logging.GetLogger()
@@ -29,8 +32,8 @@ func main() {
 		isAllGroup = true
 	}
 
-	client := registry.NewClient(*host, *port, *dryRun)
-	client.BasicAuthentication(*username, *password)
+	client := registry.NewClient(host, port, dryRun)
+	client.BasicAuthentication(username, password)
 
 	catalog := client.GetCatalog()
 
