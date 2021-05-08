@@ -1,5 +1,9 @@
 name: Check CI
-on: workflow_dispatch
+on:
+  pull_request:
+    branches:
+      - 'master'
+  workflow_dispatch:
 env:
   GO-VERSION: '1.16.x'
 jobs:
