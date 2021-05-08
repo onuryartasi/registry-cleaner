@@ -6,8 +6,8 @@ type Catalog struct {
 	Repositories []string `json:"repositories"`
 }
 
-
-type Tag struct {
+//TODO: change struct name to Image
+type Image struct {
 	Name string   `json:"name"`
 	Tags []string `json:"tags"`
 }
@@ -26,20 +26,21 @@ type Manifests struct {
 }
 
 type V1Compatibility struct {
-	Created  time.Time `json:"created"`
-	ID     string `json:"id"`
-	Parent string `json:"parent"`
+	Created time.Time `json:"created"`
+	ID      string    `json:"id"`
+	Parent  string    `json:"parent"`
 }
 
-type SortTag struct{
-	Tag string
-	Digest string
-	TimeAgo float64
+type Tag struct {
+	Name        string
+	CreatedDate time.Time
+	ImageName   string
 }
 
 type Registry struct {
-	HOST string
-	PORT string
-	USER string
+	HOST     string
+	PORT     string
+	USER     string
 	PASSWORD string
+	DryRun   bool
 }

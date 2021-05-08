@@ -1,2 +1,7 @@
 .idea
 vendor/
+
+config.yaml
+./upload-docker
+upload_docker.sh
+

@@ -1,1 +1,142 @@
 package policy
+
+import (
+	"io/ioutil"
+	"log"
+	"strings"
+	"time"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/onuryartasi/registry-cleaner/pkg/logging"
+
+	"gopkg.in/yaml.v2"
+
+	"github.com/onuryartasi/registry-cleaner/pkg/registry"
+)
+
+var client = registry.Registry{}
+var imageRuleImages *[]Image
+var parsedDate time.Time
+var logger *logrus.Logger
+
+func init() {
+	logger = logging.GetLogger()
+}
+
+// initialize convert config to struct.
+func Initialize() Policy {
+	policy := Policy{}
+
+	//todo: Add Environment variable for policy file.
+	//todo: Read policy file to path from arguments.
+	data, err := ioutil.ReadFile("config.yaml")
+	if err != nil {
+		log.Printf("Cannot read config file")
+	}
+
+	err = yaml.Unmarshal(data, &policy)
+	if err != nil {
+		log.Println("Cannot unmarshal yaml file to struct")
+	}
+
+	policy.setImageRuleImages()
+
+	parsedDate, err = parseDate(policy.OlderThanGivenDateRule.Date)
+	if err != nil {
+		logger.Fatalf("Cannot parse given date with layout. Check layout table...")
+	}
+
+	return policy
+}
+
+// apply perform polices given config on unique images.
+func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
+	client = cl
+
+	if policy.RegexRule.Enable {
+		image = policy.regexRuleCheck(image)
+
+	}
+
+	if policy.ImageRule.Enable {
+		image = policy.imageRuleCheck(image)
+
+	}
+
+	if policy.OlderThanGivenDateRule.Enable {
+		image = policy.olderThanGivenDateCheck(image)
+	}
+
+	if policy.NRule.Enable {
+		image = policy.nRuleCheck(image)
+	}
+
+	if client.DryRun {
+		logger.Infoln("Deleting images: ", image)
+	} else {
+		deleteTags(image)
+	}
+
+}
+
+// setImageRuleImages images of ImageRule policies split image name and tag name, store Image struct pointer.
+func (policy Policy) setImageRuleImages() {
+
+	var images []Image
+	for _, rawImage := range policy.ImageRule.Images {
+		var image Image
+		tag := strings.Split(rawImage, ":")
+		if len(tag) > 1 {
+			image.tag = tag[1]
+		} else {
+			image.tag = ""
+		}
+		image.name = tag[0]
+		images = append(images, image)
+	}
+	imageRuleImages = &images
+}
+
+// deleteTags  get tags' digest given tags and delete them.
+func deleteTags(image registry.Image) {
+
+	for _, tag := range image.Tags {
+		digest, err := client.GetDigest(image.Name, tag)
+		if err != nil {
+			logger.Errorf("Cannot getting Image Digest in deleteTags. Image: %s:%s", image.Name, tag)
+			continue
+		}
+		statusCode, err := client.DeleteTag(image.Name, digest)
+		if err != nil {
+			logger.Errorf("Cannot delete Tag statusCode:%v, error: %s", statusCode, err)
+			continue
+		}
+
+		if statusCode == 202 {
+			logger.Infof("Deleted image: %s:%s", image.Name, tag)
+		} else {
+			logger.Warnf("Cannot Delete image: %s:%s error: %v", image.Name, tag, err)
+		}
+	}
+}
+
+// parseDate convert time.Time type given date in config
+func parseDate(date string) (time.Time, error) {
+	var err error
+	var parsedDate time.Time
+	var layouts = []string{
+		"02.01.2006 15:04:05",
+		"02.01.2006 15:04",
+		"02.01.2006",
+	}
+
+	for _, layout := range layouts {
+		parsedDate, err = time.Parse(layout, date)
+		if err != nil {
+			continue
+		}
+		return parsedDate, nil
+	}
+	return time.Time{}, err
+}
