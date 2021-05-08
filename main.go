@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-
 	"github.com/onuryartasi/registry-cleaner/pkg/logging"
 	"github.com/onuryartasi/registry-cleaner/pkg/policy"
 	"github.com/onuryartasi/registry-cleaner/pkg/registry"
