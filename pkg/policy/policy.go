@@ -15,7 +15,6 @@ import (
 	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
-var client = registry.Registry{}
 var imageRuleImages *[]Image
 var parsedDate time.Time
 var logger *logrus.Logger
@@ -51,8 +50,7 @@ func Initialize() Policy {
 }
 
 // apply perform polices given config on unique images.
-func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
-	client = cl
+func (policy Policy) Apply(client registry.Registry, image registry.Image) {
 
 	if policy.RegexRule.Enable {
 		image = policy.regexRuleCheck(image)
@@ -65,17 +63,17 @@ func (policy Policy) Apply(cl registry.Registry, image registry.Image) {
 	}
 
 	if policy.OlderThanGivenDateRule.Enable {
-		image = policy.olderThanGivenDateCheck(image)
+		image = policy.olderThanGivenDateCheck(client, image)
 	}
 
 	if policy.NRule.Enable {
-		image = policy.nRuleCheck(image)
+		image = policy.nRuleCheck(client, image)
 	}
 
 	if client.DryRun {
 		logger.Infoln("Deleting images: ", image)
 	} else {
-		deleteTags(image)
+		deleteTags(client, image)
 	}
 
 }
@@ -99,7 +97,7 @@ func (policy Policy) setImageRuleImages() {
 }
 
 // deleteTags  get tags' digest given tags and delete them.
-func deleteTags(image registry.Image) {
+func deleteTags(client registry.RegistryInterface, image registry.Image) {
 
 	for _, tag := range image.Tags {
 		digest, err := client.GetDigest(image.Name, tag)

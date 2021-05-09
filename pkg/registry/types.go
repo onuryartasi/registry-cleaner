@@ -6,6 +6,13 @@ type Catalog struct {
 	Repositories []string `json:"repositories"`
 }
 
+type RegistryInterface interface {
+	GetManifest(imageName, tag string) Manifests
+	DeleteTag(imageName, digest string) (int, error)
+	GetDigest(imageName, tag string) (string, error)
+	GetCatalog() Catalog
+}
+
 //TODO: change struct name to Image
 type Image struct {
 	Name string   `json:"name"`

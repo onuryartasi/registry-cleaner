@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"sort"
 
+	"github.com/onuryartasi/registry-cleaner/pkg/logging"
+
 	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
-func (policy Policy) nRuleCheck(image registry.Image) registry.Image {
-
+func (policy Policy) nRuleCheck(client registry.RegistryInterface, image registry.Image) registry.Image {
+	logger := logging.GetLogger()
 	var tagList []registry.Tag
 	var v1Compatibility registry.V1Compatibility
 	var deletableTags []string
@@ -17,10 +19,9 @@ func (policy Policy) nRuleCheck(image registry.Image) registry.Image {
 		for _, tag := range image.Tags {
 
 			manifests := client.GetManifest(image.Name, tag)
-
 			// Broken manifest causes error. If tag's manifest is broken then continue next tag.
 			if len(manifests.History) == 0 {
-				logger.Warnf("Image Manifest is broken.Skipping this tag. image: %s:%s", image.Name, tag)
+				logger.Warnf("Image Manifest is broken. Skipping this tag. image: %s:%s", image.Name, tag)
 				continue
 			}
 
@@ -28,7 +29,8 @@ func (policy Policy) nRuleCheck(image registry.Image) registry.Image {
 
 			err := json.Unmarshal([]byte(v1comp), &v1Compatibility)
 			if err != nil {
-				logger.Errorf("Error Unmarshal compatibility error:%s", err)
+				logger.Errorf("Error Unmarshal compatibility error: %v", err)
+				continue
 			}
 
 			// Collect tags in slice for sorting.
