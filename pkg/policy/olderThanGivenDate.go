@@ -6,7 +6,7 @@ import (
 	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
-func (policy Policy) olderThanGivenDateCheck(image registry.Image) registry.Image {
+func (policy Policy) olderThanGivenDateCheck(client registry.RegistryInterface, image registry.Image) registry.Image {
 	var v1Compatibility registry.V1Compatibility
 	var deletableTags []string
 
