@@ -26,8 +26,3 @@ type Policy struct {
 		Date   string `yaml:"date"`
 	} `yaml:"OlderThanGivenDateRule"`
 }
-
-type Image struct {
-	name string
-	tag  string
-}

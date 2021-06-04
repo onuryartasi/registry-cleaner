@@ -3,7 +3,6 @@ package policy
 import (
 	"io/ioutil"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -15,7 +14,6 @@ import (
 	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
-var imageRuleImages *[]Image
 var parsedDate time.Time
 var logger *logrus.Logger
 
@@ -39,8 +37,6 @@ func Initialize() Policy {
 		log.Println("Cannot unmarshal yaml file to struct")
 	}
 
-	policy.setImageRuleImages()
-
 	parsedDate, err = parseDate(policy.OlderThanGivenDateRule.Date)
 	if err != nil {
 		logger.Fatalf("Cannot parse given date with layout. Check layout table...")
@@ -54,12 +50,6 @@ func (policy Policy) Apply(client registry.Registry, image registry.Image) {
 
 	if policy.RegexRule.Enable {
 		image = policy.regexRuleCheck(image)
-
-	}
-
-	if policy.ImageRule.Enable {
-		image = policy.imageRuleCheck(image)
-
 	}
 
 	if policy.OlderThanGivenDateRule.Enable {
@@ -76,24 +66,6 @@ func (policy Policy) Apply(client registry.Registry, image registry.Image) {
 		deleteTags(client, image)
 	}
 
-}
-
-// setImageRuleImages images of ImageRule policies split image name and tag name, store Image struct pointer.
-func (policy Policy) setImageRuleImages() {
-
-	var images []Image
-	for _, rawImage := range policy.ImageRule.Images {
-		var image Image
-		tag := strings.Split(rawImage, ":")
-		if len(tag) > 1 {
-			image.tag = tag[1]
-		} else {
-			image.tag = ""
-		}
-		image.name = tag[0]
-		images = append(images, image)
-	}
-	imageRuleImages = &images
 }
 
 // deleteTags  get tags' digest given tags and delete them.

@@ -2,6 +2,7 @@ package policy
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
@@ -10,6 +11,7 @@ func (policy Policy) olderThanGivenDateCheck(client registry.RegistryInterface, 
 	var v1Compatibility registry.V1Compatibility
 	var deletableTags []string
 
+	log.Println("IMAGE NAME: ", image.Name)
 	for _, tag := range image.Tags {
 
 		manifests := client.GetManifest(image.Name, tag)
