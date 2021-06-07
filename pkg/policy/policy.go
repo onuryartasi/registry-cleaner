@@ -53,7 +53,7 @@ func (policy Policy) Apply(client registry.Registry, image registry.Image) {
 	}
 
 	if policy.OlderThanGivenDateRule.Enable {
-		image = policy.olderThanGivenDateCheck(client, image)
+		image = policy.olderThanGivenDateCheck(client, image, parsedDate)
 	}
 
 	if policy.NRule.Enable {
