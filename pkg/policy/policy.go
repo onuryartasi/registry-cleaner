@@ -24,7 +24,6 @@ func init() {
 // initialize convert config to struct.
 func Initialize() Policy {
 	policy := Policy{}
-
 	//todo: Add Environment variable for policy file.
 	//todo: Read policy file to path from arguments.
 	data, err := ioutil.ReadFile("config.yaml")
@@ -66,6 +65,20 @@ func (policy Policy) Apply(client registry.Registry, image registry.Image) {
 		deleteTags(client, image)
 	}
 
+}
+
+func (policy Policy) Start(client registry.Registry) {
+	catalog := client.GetCatalog()
+	logger.Infof("Founded %d unique images", len(catalog.Repositories))
+	repoMap := registry.SplitRepositories(catalog.Repositories)
+
+	//TODO: Get group part by part instead of all
+	for gN, rL := range repoMap {
+		for _, v := range rL {
+			image := client.GetImageTags(gN, v)
+			policy.Apply(client, image)
+		}
+	}
 }
 
 // deleteTags  get tags' digest given tags and delete them.
