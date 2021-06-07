@@ -2,22 +2,24 @@ package policy
 
 import (
 	"encoding/json"
-	"log"
+	"time"
+
+	"github.com/onuryartasi/registry-cleaner/pkg/logging"
 
 	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
-func (policy Policy) olderThanGivenDateCheck(client registry.RegistryInterface, image registry.Image) registry.Image {
+func (policy Policy) olderThanGivenDateCheck(client registry.RegistryInterface, image registry.Image, parsedDate time.Time) registry.Image {
+	logger := logging.GetLogger()
 	var v1Compatibility registry.V1Compatibility
 	var deletableTags []string
 
-	log.Println("IMAGE NAME: ", image.Name)
 	for _, tag := range image.Tags {
 
 		manifests := client.GetManifest(image.Name, tag)
 
 		if len(manifests.History) == 0 {
-			logger.Warnf("Image Manifest is broken.Skipping this tag. image: %s:%s", image.Name, tag)
+			logger.Warnf("Image Manifest is broken. Skipping this tag. image: %s:%s", image.Name, tag)
 			continue
 		}
 
@@ -32,9 +34,6 @@ func (policy Policy) olderThanGivenDateCheck(client registry.RegistryInterface, 
 		}
 
 	}
-	// if deletableTags is 0 then do nothing
-	if len(deletableTags) > 0 {
-		return registry.Image{Name: image.Name, Tags: deletableTags}
-	}
-	return image
+
+	return registry.Image{Name: image.Name, Tags: deletableTags}
 }
