@@ -9,7 +9,6 @@ import (
 
 func main() {
 	var host = flag.String("host", "localhost", "Registry host")
-	var port = flag.String("port", "5000", "Registry Port")
 	var username = flag.String("username", "", "Registry username")
 	var password = flag.String("password", "", "Registry password")
 	//var lastImages = *flag.Int("keep", 10, "Keep Last n images")
@@ -18,8 +17,9 @@ func main() {
 
 	policy := policy.Initialize()
 
-	client := registry.NewClient(*host, *port, *dryRun)
+	client := registry.NewClient(*host, *dryRun)
 	client.BasicAuthentication(*username, *password)
+	client.Auth()
 
 	policy.Start(client)
 

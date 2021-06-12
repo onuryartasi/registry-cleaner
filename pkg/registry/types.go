@@ -46,7 +46,6 @@ type Tag struct {
 
 type Registry struct {
 	HOST     string
-	PORT     string
 	USER     string
 	PASSWORD string
 	DryRun   bool

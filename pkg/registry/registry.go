@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -20,18 +21,51 @@ func init() {
 }
 
 // NewClient return Registry object for reuse.
-func NewClient(host, port string, dryRun bool) Registry {
-	return Registry{HOST: host, PORT: port, DryRun: dryRun}
+func NewClient(host string, dryRun bool) Registry {
+	url,err := url.Parse(host)
+	if err != nil {
+		logger.Fatalf("Host format wrong. Check host paramter.")
+	}
+	if len(url.Scheme) == 0 {
+		url.Scheme = "https"
+	}
+	logger.Info(url.String())
+	return Registry{HOST: url.String(), DryRun: dryRun}
 }
 
 //BasicAuthentication Set basic auth given registry.
 func (registry *Registry) BasicAuthentication(user, password string) {
-	*registry = Registry{HOST: registry.HOST, PORT: registry.PORT, USER: user, PASSWORD: password, DryRun: registry.DryRun}
+	*registry = Registry{HOST: registry.HOST, USER: user, PASSWORD: password, DryRun: registry.DryRun}
 }
 
+func (registry *Registry) Auth(){
+	resp,err := registry.GET("/v2")
+	if err != nil {
+		logger.Infof("error: %v",err)
+		logger.Fatalf("Can't authenticate for %s",registry.HOST)
+	}
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logger.Errorln(err)
+	}
+
+
+
+	switch resp.StatusCode {
+	case 200:
+		logger.Infof("Successfully Authenticate")
+	case 401:
+		logger.Fatalf("Authentication failed for %s. Check username or password.",registry.HOST)
+	case 404:
+		logger.Fatalf("Not Found for %s",registry.HOST)
+	default:
+		logger.Fatalf("Undefined statusCode. %s, %s",resp.StatusCode,string(bodyBytes))
+	}
+}
 //GET return  http response for given path.
 func (registry Registry) GET(path string) (*http.Response, error) {
-	resp, err := http.Get(fmt.Sprintf("http://%s:%s%s", registry.HOST, registry.PORT, path))
+	resp, err := http.Get(fmt.Sprintf("%s%s", registry.HOST, path))
+
 	return resp, err
 }
 
@@ -96,7 +130,7 @@ func (registry Registry) GetDigest(imageName, tag string) (string, error) {
 	client := &http.Client{}
 	var digest string
 
-	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, tag)
+	url := fmt.Sprintf("%s/v2/%s/manifests/%s", registry.HOST, imageName, tag)
 	req, err := http.NewRequest("HEAD", url, nil)
 	if err != nil {
 		log.Println("Cannot get docker image digest", err)
@@ -119,7 +153,7 @@ func (registry Registry) GetDigest(imageName, tag string) (string, error) {
 
 func (registry Registry) GetManifest(imageName, tag string) Manifests {
 	var manifests Manifests
-	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, tag)
+	url := fmt.Sprintf("%s/v2/%s/manifests/%s", registry.HOST, imageName, tag)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -148,9 +182,9 @@ func (registry Registry) GetImageTags(groupName, repoName string) Image {
 	var image Image
 	var url string
 	if len(groupName) > 0 {
-		url = fmt.Sprintf("http://%s:%s/v2/%s/%s/tags/list", registry.HOST, registry.PORT, groupName, repoName)
+		url = fmt.Sprintf("%s/v2/%s/%s/tags/list", registry.HOST, groupName, repoName)
 	} else {
-		url = fmt.Sprintf("http://%s:%s/v2/%s/tags/list", registry.HOST, registry.PORT, repoName)
+		url = fmt.Sprintf("%s/v2/%s/tags/list", registry.HOST, repoName)
 	}
 
 	resp, err := http.Get(url)
@@ -171,7 +205,7 @@ func (registry Registry) GetImageTags(groupName, repoName string) Image {
 }
 
 func (registry Registry) DeleteTag(imageName, digest string) (int, error) {
-	url := fmt.Sprintf("http://%s:%s/v2/%s/manifests/%s", registry.HOST, registry.PORT, imageName, digest)
+	url := fmt.Sprintf("%s/v2/%s/manifests/%s", registry.HOST, imageName, digest)
 	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
