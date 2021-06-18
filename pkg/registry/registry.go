@@ -21,8 +21,8 @@ func init() {
 }
 
 // NewClient return Registry object for reuse.
-func NewClient(host, username ,password string, dryRun bool) Registry {
-	url,err := url.Parse(host)
+func NewClient(host, username, password string, dryRun bool) Registry {
+	url, err := url.Parse(host)
 	if err != nil {
 		logger.Fatalf("Host format wrong. Check host paramter.")
 	}
@@ -30,16 +30,16 @@ func NewClient(host, username ,password string, dryRun bool) Registry {
 		url.Scheme = "https"
 	}
 
-	return Registry{HOST: url.String(), USER: username, PASSWORD: password,DryRun: dryRun}
+	return Registry{HOST: url.String(), USER: username, PASSWORD: password, DryRun: dryRun}
 }
 
-func (registry *Registry) CheckAuth(){
+func (registry *Registry) CheckAuth() {
 
 	client := &http.Client{}
 	url := fmt.Sprintf("%s/v2", registry.HOST)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		logger.Errorf("Cannot new request CheckAuth()", err)
+		logger.Error("Cannot new request CheckAuth()", err)
 	}
 	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	if len(registry.USER) > 0 {
@@ -48,8 +48,8 @@ func (registry *Registry) CheckAuth(){
 
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Infof("error: %v",err)
-		logger.Fatalf("Can't authenticate for %s",registry.HOST)
+		logger.Infof("error: %v", err)
+		logger.Fatalf("Can't authenticate for %s", registry.HOST)
 	}
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -60,13 +60,14 @@ func (registry *Registry) CheckAuth(){
 	case 200:
 		logger.Infof("Successfully Authenticate")
 	case 401:
-		logger.Fatalf("Authentication failed for %s. Check username or password.",registry.HOST)
+		logger.Fatalf("Authentication failed for %s. Check username or password.", registry.HOST)
 	case 404:
-		logger.Fatalf("Not Found for %s",registry.HOST)
+		logger.Fatalf("Not Found for %s", registry.HOST)
 	default:
-		logger.Fatalf("Undefined statusCode. %s, %s",resp.StatusCode,string(bodyBytes))
+		logger.Fatalf("Undefined statusCode. %d, %s", resp.StatusCode, string(bodyBytes))
 	}
 }
+
 //GET return  http response for given path.
 func (registry Registry) GET(path string) (*http.Response, error) {
 	resp, err := http.Get(fmt.Sprintf("%s%s", registry.HOST, path))
@@ -81,7 +82,7 @@ func (registry Registry) GetCatalog() Catalog {
 	url := fmt.Sprintf("%s/v2/_catalog", registry.HOST)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		logger.Errorf("Cannot new request GetCatalog()", err)
+		logger.Error("Cannot new request GetCatalog()", err)
 	}
 
 	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
@@ -223,7 +224,7 @@ func (registry Registry) GetImageTags(groupName, repoName string) Image {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Errorf("Cannot get tags", err)
+		logger.Error("Cannot get tags", err)
 	}
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
