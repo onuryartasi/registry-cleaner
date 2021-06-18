@@ -17,9 +17,8 @@ func main() {
 
 	policy := policy.Initialize()
 
-	client := registry.NewClient(*host, *dryRun)
-	client.BasicAuthentication(*username, *password)
-	client.Auth()
+	client := registry.NewClient(*host, *username,*password,*dryRun)
+	client.CheckAuth()
 
 	policy.Start(client)
 

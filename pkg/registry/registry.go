@@ -21,7 +21,7 @@ func init() {
 }
 
 // NewClient return Registry object for reuse.
-func NewClient(host string, dryRun bool) Registry {
+func NewClient(host, username ,password string, dryRun bool) Registry {
 	url,err := url.Parse(host)
 	if err != nil {
 		logger.Fatalf("Host format wrong. Check host paramter.")
@@ -29,17 +29,24 @@ func NewClient(host string, dryRun bool) Registry {
 	if len(url.Scheme) == 0 {
 		url.Scheme = "https"
 	}
-	logger.Info(url.String())
-	return Registry{HOST: url.String(), DryRun: dryRun}
+
+	return Registry{HOST: url.String(), USER: username, PASSWORD: password,DryRun: dryRun}
 }
 
-//BasicAuthentication Set basic auth given registry.
-func (registry *Registry) BasicAuthentication(user, password string) {
-	*registry = Registry{HOST: registry.HOST, USER: user, PASSWORD: password, DryRun: registry.DryRun}
-}
+func (registry *Registry) CheckAuth(){
 
-func (registry *Registry) Auth(){
-	resp,err := registry.GET("/v2")
+	client := &http.Client{}
+	url := fmt.Sprintf("%s/v2", registry.HOST)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		logger.Errorf("Cannot new request CheckAuth()", err)
+	}
+	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+	if len(registry.USER) > 0 {
+		req.SetBasicAuth(registry.USER, registry.PASSWORD)
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		logger.Infof("error: %v",err)
 		logger.Fatalf("Can't authenticate for %s",registry.HOST)
@@ -48,8 +55,6 @@ func (registry *Registry) Auth(){
 	if err != nil {
 		logger.Errorln(err)
 	}
-
-
 
 	switch resp.StatusCode {
 	case 200:
@@ -72,7 +77,18 @@ func (registry Registry) GET(path string) (*http.Response, error) {
 //getCatalog return v2 catalog for given registry.
 func (registry Registry) GetCatalog() Catalog {
 	var catalog Catalog
-	resp, err := registry.GET("/v2/_catalog")
+	client := &http.Client{}
+	url := fmt.Sprintf("%s/v2/_catalog", registry.HOST)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		logger.Errorf("Cannot new request GetCatalog()", err)
+	}
+
+	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+	if len(registry.USER) > 0 {
+		req.SetBasicAuth(registry.USER, registry.PASSWORD)
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		logger.Fatalln("Error getting version", err)
 	}
@@ -138,6 +154,9 @@ func (registry Registry) GetDigest(imageName, tag string) (string, error) {
 	}
 
 	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+	if len(registry.USER) > 0 {
+		req.SetBasicAuth(registry.USER, registry.PASSWORD)
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Cannot get digest", err)
@@ -160,6 +179,9 @@ func (registry Registry) GetManifest(imageName, tag string) Manifests {
 		log.Println("Cannot get docker image digest", err)
 	}
 
+	if len(registry.USER) > 0 {
+		req.SetBasicAuth(registry.USER, registry.PASSWORD)
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Cannot get digest", err)
@@ -187,10 +209,23 @@ func (registry Registry) GetImageTags(groupName, repoName string) Image {
 		url = fmt.Sprintf("%s/v2/%s/tags/list", registry.HOST, repoName)
 	}
 
-	resp, err := http.Get(url)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+
 	if err != nil {
-		log.Fatal(err)
+		logger.Errorln("Cannot construct new request", err)
 	}
+
+	req.Header.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+	if len(registry.USER) > 0 {
+		req.SetBasicAuth(registry.USER, registry.PASSWORD)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Errorf("Cannot get tags", err)
+	}
+
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
