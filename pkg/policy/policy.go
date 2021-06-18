@@ -36,9 +36,12 @@ func Initialize() Policy {
 		log.Println("Cannot unmarshal yaml file to struct")
 	}
 
-	parsedDate, err = parseDate(policy.OlderThanGivenDateRule.Date)
-	if err != nil {
-		logger.Fatalf("Cannot parse given date with layout. Check layout table...")
+	if policy.OlderThanGivenDateRule.Enable {
+		parsedDate, err = parseDate(policy.OlderThanGivenDateRule.Date)
+		if err != nil {
+			logger.Fatalf("Cannot parse given date with layout. Check layout table...")
+		}
+
 	}
 
 	return policy
