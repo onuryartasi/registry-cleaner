@@ -36,8 +36,8 @@ func Initialize() Policy {
 		log.Println("Cannot unmarshal yaml file to struct")
 	}
 
-	if policy.OlderThanGivenDateRule.Enable {
-		parsedDate, err = parseDate(policy.OlderThanGivenDateRule.Date)
+	if policy.UntilDateRule.Enable {
+		parsedDate, err = parseDate(policy.UntilDateRule.Date)
 		if err != nil {
 			logger.Fatalf("Cannot parse given date with layout. Check layout table...")
 		}
@@ -54,8 +54,8 @@ func (policy Policy) Apply(client registry.Registry, image registry.Image) {
 		image = policy.regexRuleCheck(image)
 	}
 
-	if policy.OlderThanGivenDateRule.Enable {
-		image = policy.olderThanGivenDateCheck(client, image, parsedDate)
+	if policy.UntilDateRule.Enable {
+		image = policy.untilDateCheck(client, image, parsedDate)
 	}
 
 	if policy.NRule.Enable {
