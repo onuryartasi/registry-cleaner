@@ -9,7 +9,7 @@ import (
 	"github.com/onuryartasi/registry-cleaner/pkg/registry"
 )
 
-func (policy Policy) olderThanGivenDateCheck(client registry.RegistryInterface, image registry.Image, parsedDate time.Time) registry.Image {
+func (policy Policy) untilDateCheck(client registry.RegistryInterface, image registry.Image, parsedDate time.Time) registry.Image {
 	logger := logging.GetLogger()
 	var v1Compatibility registry.V1Compatibility
 	var deletableTags []string
