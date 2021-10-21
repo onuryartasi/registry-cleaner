@@ -5,3 +5,5 @@ config.yaml
 ./upload-docker
 upload_docker.sh
 cover.html
+
+dist/
