@@ -58,7 +58,11 @@ func (registry *Registry) CheckAuth() {
 
 	switch resp.StatusCode {
 	case 200:
-		logger.Infof("Successfully Authenticate")
+		if len(registry.USER) == 0 {
+			logger.Infof("Registry accessible anonymous")
+		} else {
+			logger.Infof("Successfully Authenticate")
+		}
 	case 401:
 		logger.Fatalf("Authentication failed for %s. Check username or password.", registry.HOST)
 	case 404:
