@@ -3,6 +3,7 @@ package policy
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -22,11 +23,22 @@ func init() {
 }
 
 // initialize convert config to struct.
-func Initialize() Policy {
+func Initialize(configPath string) Policy {
 	policy := Policy{}
 	//todo: Add Environment variable for policy file.
 	//todo: Read policy file to path from arguments.
-	data, err := ioutil.ReadFile("config.yaml")
+
+	var configFile = "config.yaml"
+
+	path, ok := os.LookupEnv("CONFIG_FILE")
+	if ok {
+		configFile = path
+	} else if len(configPath) > 0 {
+		configFile = configPath
+	}
+
+	data, err := ioutil.ReadFile(configFile)
+
 	if err != nil {
 		log.Printf("Cannot read config file")
 	}
@@ -101,8 +113,10 @@ func deleteTags(client registry.RegistryInterface, image registry.Image) {
 
 		if statusCode == 202 {
 			logger.Infof("Deleted image: %s:%s", image.Name, tag)
+		} else if statusCode == 405 {
+			logger.Warnf("Cannot delete image. Because registry's delete feature disabled. see https://docs.docker.com/registry/configuration/#delete")
 		} else {
-			logger.Warnf("Cannot Delete image: %s:%s error: %v", image.Name, tag, err)
+			logger.Warnf("Cannot Delete image: %s:%s error: %v, status_code : %d", image.Name, tag, err, statusCode)
 		}
 	}
 }
