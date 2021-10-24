@@ -28,15 +28,12 @@ func Initialize(configPath string) Policy {
 	//todo: Add Environment variable for policy file.
 	//todo: Read policy file to path from arguments.
 
-	var configFile = "config.yaml"
+	var configFile = configPath
 
 	path, ok := os.LookupEnv("CONFIG_FILE")
 	if ok {
 		configFile = path
-	} else if len(configPath) > 0 {
-		configFile = configPath
 	}
-
 	data, err := ioutil.ReadFile(configFile)
 
 	if err != nil {
