@@ -15,6 +15,9 @@
   </p>
 </div>
 
+![GitHub](https://img.shields.io/github/license/onuryartasi/registry-cleaner)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/onuryartasi/registry-cleaner)
+![GitHub issues](https://img.shields.io/github/issues/onuryartasi/registry-cleaner)
 
 
 
